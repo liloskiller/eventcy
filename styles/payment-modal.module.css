@@ -172,3 +172,61 @@
   background: #2a2a2a;
 }
 
+export const modal 
+=
+'modal'
+;
+export const form 
+=
+'form'
+;
+export const payment__options 
+=
+'payment__options'
+;
+export const separator 
+=
+'separator'
+;
+export const credit_card_info__form 
+=
+'credit_card_info__form'
+;
+export const input_container 
+=
+'input_container'
+;
+export const split 
+=
+'split'
+;
+export const input_label 
+=
+'input_label'
+;
+export const input_field 
+=
+'input_field'
+;
+export const purchase__btn 
+=
+'purchase__btn'
+;
+
+const styles = {
+  modal: 'modal',
+  form: 'form',
+  payment__options: 'payment__options',
+  separator: 'separator',
+  credit_card_info__form: 'credit_card_info__form',
+  input_container: 'input_container',
+  split: 'split',
+  input_label: 'input_label',
+  input_field: 'input_field',
+  purchase__btn: 'purchase__btn',
+}
+;
+
+export default styles 
+;
+

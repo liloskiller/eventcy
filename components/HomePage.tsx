@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Calendar, Music, Ticket, Info, Star, MessageSquare, Share2, HeadphonesIcon, ChevronDown } from "lucide-react"
 import ImageCarousel from "./ImageCarousel"
 import DarkModeToggle from "./DarkModeToggle"
@@ -45,34 +44,18 @@ const clubInfo = {
 export default function HomePage() {
   const [selectedCity, setSelectedCity] = useState(cities[0])
   const [isOptionsOpen, setIsOptionsOpen] = useState(false)
-  const tabsListRef = useRef<HTMLDivElement>(null)
   const optionsRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    const handleResize = () => {
-      if (tabsListRef.current) {
-        if (window.innerWidth < 640) {
-          tabsListRef.current.style.overflowX = "auto"
-          tabsListRef.current.style.scrollSnapType = "x mandatory"
-        } else {
-          tabsListRef.current.style.overflowX = "visible"
-          tabsListRef.current.style.scrollSnapType = "none"
-        }
-      }
-    }
-
     const handleClickOutside = (event: MouseEvent) => {
       if (optionsRef.current && !optionsRef.current.contains(event.target as Node)) {
         setIsOptionsOpen(false)
       }
     }
 
-    handleResize()
-    window.addEventListener("resize", handleResize)
     document.addEventListener("mousedown", handleClickOutside)
 
     return () => {
-      window.removeEventListener("resize", handleResize)
       document.removeEventListener("mousedown", handleClickOutside)
     }
   }, [])
@@ -93,71 +76,75 @@ export default function HomePage() {
         Unleash the Night in Cyprus!
       </motion.h1>
       <ImageCarousel />
-      <Tabs defaultValue={selectedCity} className="w-full" onValueChange={(value) => setSelectedCity(value)}>
-        <TabsList
-          ref={tabsListRef}
-          className="flex sm:grid w-full sm:grid-cols-3 lg:grid-cols-6 mb-4 overflow-x-auto sm:overflow-x-visible scroll-smooth bg-white rounded-lg justify-center"
-        >
+
+      <div className="mb-6">
+        <div className="grid grid-cols-3 md:grid-cols-6 gap-2 w-full">
           {cities.map((city) => (
-            <TabsTrigger
+            <button
               key={city}
-              value={city}
-              className="flex-shrink-0 text-xs sm:text-sm md:text-base transition-all duration-200 hover:scale-105 focus:scale-105 scroll-snap-align-start text-purple-700 font-semibold text-center p-0"
+              className={`py-3 px-4 text-center font-medium text-base rounded-md transition-colors ${
+                selectedCity === city
+                  ? "bg-[#db2777] text-white"
+                  : "bg-white text-purple-700 hover:bg-[#db2777] hover:text-white"
+              }`}
+              onClick={() => setSelectedCity(city)}
             >
               {city}
-            </TabsTrigger>
+            </button>
           ))}
-        </TabsList>
-        {cities.map((city) => (
-          <TabsContent key={city} value={city} className="mt-4 sm:mt-6">
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-              <Card className="mb-4 sm:mb-6 bg-white backdrop-blur-md border-none text-purple-900">
-                <CardHeader>
-                  <CardTitle className="flex items-center text-lg sm:text-xl md:text-2xl">
-                    <Star className="mr-2 h-5 w-5 sm:h-6 sm:w-6 text-purple-700" />
-                    {city} Nightlife Awaits!
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm sm:text-base md:text-lg">{clubInfo[city]}</p>
-                </CardContent>
-              </Card>
-              <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {eventTypes.map((type, index) => (
-                  <motion.div
-                    key={type.name}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: index * 0.1 }}
-                  >
-                    <Card className="bg-white backdrop-blur-md border-none text-white h-full flex flex-col">
-                      <CardHeader>
-                        <CardTitle className="flex items-center text-base sm:text-lg md:text-xl">
-                          <type.icon className="mr-2 h-5 w-5 sm:h-6 sm:w-6 text-pink-400" />
-                          {type.name}
-                        </CardTitle>
-                        <CardDescription className="text-[rgb(88_28_135)] text-sm sm:text-base font-semibold">
-                          {type.name} in {city}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="flex-grow">
-  <p className="text-xs sm:text-sm md:text-base text-[rgb(88_28_135)]">{type.description}</p>
-</CardContent>
-                      <CardFooter>
-                        <Link href={type.link} className="w-full">
-                          <Button className="w-full bg-white hover:bg-gray-100 text-purple-700 font-bold py-2 px-4 rounded-full transition-all duration-200 transform hover:scale-105 active:scale-95 text-xs sm:text-sm md:text-base">
-                            {type.name === "Upcoming Events" ? "Discover Events" : type.name}
-                          </Button>
-                        </Link>
-                      </CardFooter>
-                    </Card>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
-          </TabsContent>
-        ))}
-      </Tabs>
+        </div>
+      </div>
+
+      {cities.map((city) => (
+        <div key={city} className={`mt-4 sm:mt-6 ${selectedCity !== city ? "hidden" : ""}`}>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+            <Card className="mb-4 sm:mb-6 bg-white backdrop-blur-md border-none text-purple-900">
+              <CardHeader>
+                <CardTitle className="flex items-center text-lg sm:text-xl md:text-2xl">
+                  <Star className="mr-2 h-5 w-5 sm:h-6 sm:w-6 text-purple-700" />
+                  {city} Nightlife Awaits!
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm sm:text-base md:text-lg">{clubInfo[city]}</p>
+              </CardContent>
+            </Card>
+            <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {eventTypes.map((type, index) => (
+                <motion.div
+                  key={type.name}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
+                >
+                  <Card className="bg-white backdrop-blur-md border-none text-white h-full flex flex-col">
+                    <CardHeader>
+                      <CardTitle className="flex items-center text-base sm:text-lg md:text-xl">
+                        <type.icon className="mr-2 h-5 w-5 sm:h-6 sm:w-6 text-pink-400" />
+                        {type.name}
+                      </CardTitle>
+                      <CardDescription className="text-[rgb(88_28_135)] text-sm sm:text-base font-semibold">
+                        {type.name} in {city}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex-grow">
+                      <p className="text-xs sm:text-sm md:text-base text-[rgb(88_28_135)]">{type.description}</p>
+                    </CardContent>
+                    <CardFooter>
+                      <Link href={type.link} className="w-full">
+                        <Button className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-3 px-4 rounded-md transition-all duration-200 transform hover:scale-105 active:scale-95 text-xs sm:text-sm md:text-base">
+                          {type.name === "Upcoming Events" ? "Discover Events" : type.name}
+                        </Button>
+                      </Link>
+                    </CardFooter>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+      ))}
+
       <motion.div
         className="mt-6 sm:mt-8 md:mt-10 lg:mt-12 text-center"
         initial={{ opacity: 0, y: 20 }}
@@ -171,7 +158,7 @@ export default function HomePage() {
           Join thousands of party-goers and create unforgettable memories!
         </p>
         <Link href="/book-event">
-          <Button className="bg-white hover:bg-gray-100 text-purple-700 font-bold py-2 sm:py-3 px-4 sm:px-6 rounded-full text-sm sm:text-base md:text-lg transition-all duration-200 transform hover:scale-105 active:scale-95">
+          <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-3 px-6 rounded-md text-sm sm:text-base md:text-lg transition-all duration-200 transform hover:scale-105 active:scale-95">
             Start Your Night Out!
           </Button>
         </Link>
@@ -179,7 +166,7 @@ export default function HomePage() {
       <div className="fixed bottom-4 left-4 z-50" ref={optionsRef}>
         <Button
           onClick={toggleOptions}
-          className="bg-white text-purple-600 hover:bg-gray-100 font-bold py-2 px-4 rounded-full shadow-lg flex items-center text-xs sm:text-sm"
+          className="bg-purple-600 text-white hover:bg-purple-700 font-bold py-2 px-4 rounded-md shadow-lg flex items-center text-xs sm:text-sm"
         >
           <Info className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
           Options

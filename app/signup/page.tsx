@@ -1,5 +1,7 @@
 "use client"
 
+import type React from "react"
+
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -15,14 +17,13 @@ export default function SignUpPage() {
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [isAdult, setIsAdult] = useState(false)
   const [agreeTerms, setAgreeTerms] = useState(false)
   const router = useRouter()
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!isAdult || !agreeTerms) {
-      alert("You must agree to both conditions to sign up.")
+    if (!agreeTerms) {
+      alert("You must agree to the terms and conditions to sign up.")
       return
     }
     // Here you would typically handle the sign-up logic
@@ -90,15 +91,6 @@ export default function SignUpPage() {
                 />
               </div>
               <div className="space-y-4">
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="age" checked={isAdult} onCheckedChange={() => setIsAdult(!isAdult)} />
-                  <label
-                    htmlFor="age"
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    I agree that I am 18+ years old
-                  </label>
-                </div>
                 <div className="flex items-center space-x-2">
                   <Checkbox id="terms" checked={agreeTerms} onCheckedChange={() => setAgreeTerms(!agreeTerms)} />
                   <label
