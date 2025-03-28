@@ -172,44 +172,34 @@
   background: #2a2a2a;
 }
 
-export const modal 
-=
+export const modal =
 'modal'
 ;
-export const form 
-=
+export const form =
 'form'
 ;
-export const payment__options 
-=
+export const payment__options =
 'payment__options'
 ;
-export const separator 
-=
+export const separator =
 'separator'
 ;
-export const credit_card_info__form 
-=
+export const credit_card_info__form =
 'credit_card_info__form'
 ;
-export const input_container 
-=
+export const input_container =
 'input_container'
 ;
-export const split 
-=
+export const split =
 'split'
 ;
-export const input_label 
-=
+export const input_label =
 'input_label'
 ;
-export const input_field 
-=
+export const input_field =
 'input_field'
 ;
-export const purchase__btn 
-=
+export const purchase__btn =
 'purchase__btn'
 ;
 
