@@ -7,13 +7,15 @@ import cors from 'cors';
 
 // Enable CORS for your frontend domain
 app.use(cors({
-    origin: 'https://eventcy-9xoy.onrender.com', // The domain of your frontend
-    methods: ['GET', 'POST', 'OPTIONS'], // Allowed methods
-    allowedHeaders: ["Content-Type", "Authorization", "Access-Control-Allow-Methods", "Access-Control-Request-Headers"], // Allowed headers
-    credentials: true, // Allow cookies if needed
-    enablePreflight: true
+    origin: 'https://eventcy-9xoy.onrender.com',  // The domain of your frontend
+    methods: ['GET', 'POST', 'OPTIONS'],        // Allowed methods
+    allowedHeaders: ['Content-Type', 'Authorization'],  // Allowed headers
+    credentials: true,  // Allow cookies if needed
 }));
-app.use(express.json())
+
+// Middleware to parse incoming JSON requests
+app.use(express.json());
+
 // Handle OPTIONS requests for preflight (important for CORS)
 app.options('*', cors());
 
