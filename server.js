@@ -11,8 +11,9 @@ app.use(express.json());
 app.use(cors({
     origin: 'https://eventcy-9xoy.onrender.com', // The domain of your frontend
     methods: ['GET', 'POST', 'OPTIONS'], // Allowed methods
-    allowedHeaders: ['Content-Type', 'Access-Control-Allow-Origin'], // Allowed headers
-    credentials: true // Allow cookies if needed
+    allowedHeaders: ["Content-Type", "Authorization", "Access-Control-Allow-Methods", "Access-Control-Request-Headers"], // Allowed headers
+    credentials: true, // Allow cookies if needed
+    enablePreflight: true
 }));
 // Handle OPTIONS requests for preflight (important for CORS)
 app.options('*', cors());
