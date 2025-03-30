@@ -8,9 +8,9 @@ import cors from "cors";
 app.use(express.json());
 
 app.use(cors({
-    origin: "*", // Allow all origins (for testing, change later for security)
-    methods: "GET,POST",
-    allowedHeaders: "Content-Type",
+    origin: 'https://eventcy-9xoy.onrender.com', // The domain of your frontend
+    methods: 'GET,POST', // Allowed methods
+    allowedHeaders: 'Content-Type' // Allowed headers
   }));
 
 app.post('/signup', async (req, res) => {
