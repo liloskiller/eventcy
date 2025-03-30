@@ -5,29 +5,26 @@ const app = express();
 const jwt = require('jsonwebtoken');
 import cors from 'cors';
 
-app.use(cors({
-    origin: 'https://eventcy-9xoy.onrender.com', 
-    methods: ['GET', 'POST', 'OPTIONS'], 
-    allowedHeaders: ["Content-Type", "Authorization"], 
-    credentials: true, 
-}));
+// CORS configuration
+const corsOptions = {
+    origin: 'https://eventcy-9xoy.onrender.com', // Your frontend URL
+    methods: ['GET', 'POST', 'OPTIONS'], // Allowed methods
+    allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
+    credentials: true, // Allow cookies if needed
+};
 
+// Apply CORS middleware globally
+app.use(cors(corsOptions));
 
-app.use((req, res, next) => {
-  res.on('finish', () => {
-    console.log('Response Headers:', res.getHeaders()); 
-  });
-  next();
-});
+// Handle preflight OPTIONS request separately
+app.options('*', cors(corsOptions)); // This will handle OPTIONS requests for preflight checks
 
-// Handle preflight OPTIONS requests
-app.options('*', cors()); 
-
+// Enable JSON parsing
 app.use(express.json());
 
 // Signup endpoint
 app.post('/signup', async (req, res) => {
-    console.log('Received signup request', req.body); 
+    console.log('Received signup request', req.body); // Log the incoming request
     const { username, email, password } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
 
