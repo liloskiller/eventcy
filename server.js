@@ -79,14 +79,20 @@ app.post('/login', async (req, res) => {
   }
 });
 
-app.get('/test-db', async (req, res) => {  
-  try {  
-    const result = await pool.query('SELECT NOW()');  
-    res.json({ time: result.rows[0].now });  
-  } catch (err) {  
-    res.status(500).json({ error: err.message });  
-  }  
-});  
+app.get('/test-db', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT NOW()');
+    res.json({ 
+      status: 'Database connection successful!',
+      time: result.rows[0].now 
+    });
+  } catch (err) {
+    res.status(500).json({ 
+      error: 'Database connection failed',
+      details: err.message 
+    });
+  }
+});
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
