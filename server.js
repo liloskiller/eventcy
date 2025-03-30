@@ -3,16 +3,22 @@ const bcrypt = require('bcrypt');
 const pool = require('./db');
 const app = express();
 const jwt = require('jsonwebtoken');
-import cors from "cors";
+import cors from 'cors';
 
 app.use(express.json());
 
+// Enable CORS for your frontend domain
 app.use(cors({
     origin: 'https://eventcy-9xoy.onrender.com', // The domain of your frontend
-    methods: 'GET,POST', // Allowed methods
-    allowedHeaders: 'Content-Type' // Allowed headers
-  }));
+    methods: ['GET', 'POST', 'OPTIONS'], // Allowed methods
+    allowedHeaders: ['Content-Type'], // Allowed headers
+    credentials: true // Allow cookies if needed
+}));
 
+// Handle OPTIONS requests for preflight (important for CORS)
+app.options('*', cors());
+
+// Signup endpoint
 app.post('/signup', async (req, res) => {
     const { username, email, password } = req.body;
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -28,6 +34,7 @@ app.post('/signup', async (req, res) => {
     }
 });
 
+// Login endpoint
 app.post('/login', async (req, res) => {
     const { email, password } = req.body;
     const user = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
@@ -41,5 +48,5 @@ app.post('/login', async (req, res) => {
     res.json({ token });
 });
 
+// Start the server
 app.listen(process.env.PORT || 3000, () => console.log('Server running on port 3000'));
-
