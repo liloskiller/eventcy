@@ -3,8 +3,15 @@ const bcrypt = require('bcrypt');
 const pool = require('./db');
 const app = express();
 const jwt = require('jsonwebtoken');
+import cors from "cors";
 
 app.use(express.json());
+
+app.use(cors({
+    origin: "*", // Allow all origins (for testing, change later for security)
+    methods: "GET,POST",
+    allowedHeaders: "Content-Type",
+  }));
 
 app.post('/signup', async (req, res) => {
     const { username, email, password } = req.body;
