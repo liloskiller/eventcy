@@ -31,7 +31,7 @@ export default function SignUpPage() {
 
     setLoading(true)
     try {
-      const response = await axios.post("YOUR_BACKEND_URL/signup", {
+      const response = await axios.post("https://webservice-ku64.onrender.com/signup", {
         username: name,
         email,
         password,
