@@ -11,21 +11,9 @@ app.use(express.json());
 app.use(cors({
     origin: 'https://eventcy-9xoy.onrender.com', // The domain of your frontend
     methods: ['GET', 'POST', 'OPTIONS'], // Allowed methods
-    allowedHeaders: ['Content-Type'], // Allowed headers
+    allowedHeaders: ['Content-Type', 'Access-Control-Allow-Origin'], // Allowed headers
     credentials: true // Allow cookies if needed
 }));
-app.use(function (req, res, next) { 
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header(
-        "Access-Control-Allow-Methods",
-        "GET, HEAD, OPTIONS, POST, PUT,DELETE"
-    );
-    res.header(
-        "Access-Control-Allow-Headers",
-        "Origin, X-Requested-With, Content-Type, Accept, Authorization"
-    );
-    next();
-});
 // Handle OPTIONS requests for preflight (important for CORS)
 app.options('*', cors());
 
