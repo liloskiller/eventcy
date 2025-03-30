@@ -5,14 +5,18 @@ const app = express();
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
 
-// 1. NEW: Security headers and Render proxy handling (AT THE VERY TOP)
+// 1. NEW: Primary CORS handler (MUST BE FIRST MIDDLEWARE)
 app.use((req, res, next) => {
   // Remove Express header
   res.removeHeader('X-Powered-By');
   
-  // Bypass Render's default OPTIONS handling
-  if (req.method === 'OPTIONS' && req.headers['x-render-origin-server']) {
-    return next(); // Let our CORS middleware handle it
+  // Handle OPTIONS requests immediately (bypasses Render's proxy)
+  if (req.method === 'OPTIONS') {
+    res.header('Access-Control-Allow-Origin', 'https://eventcy-9xoy.onrender.com');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    return res.status(200).end();
   }
   
   // Request logging
@@ -21,7 +25,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// 2. NEW: Enhanced CORS configuration with environment variables
+// 2. Environment configuration
 const allowedOrigins = process.env.RENDER_ALLOWED_ORIGINS 
   ? process.env.RENDER_ALLOWED_ORIGINS.split(',') 
   : ['https://eventcy-9xoy.onrender.com'];
@@ -30,44 +34,31 @@ const allowedMethods = process.env.RENDER_ALLOWED_METHODS
   ? process.env.RENDER_ALLOWED_METHODS.split(',') 
   : ['GET', 'POST', 'OPTIONS'];
 
-// Custom CORS middleware to handle Render proxy
+// 3. Secondary CORS protection for non-OPTIONS requests
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  
   if (allowedOrigins.includes(origin)) {
     res.header('Access-Control-Allow-Origin', origin);
-    res.header('Access-Control-Allow-Methods', allowedMethods.join(','));
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     res.header('Access-Control-Allow-Credentials', 'true');
-    res.header('Access-Control-Max-Age', '86400');
   }
-
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-  
   next();
 });
 
-// Keep the cors package for additional safety
+// 4. Body parser and cors package (for additional safety)
+app.use(express.json());
 app.use(cors({
   origin: allowedOrigins,
   methods: allowedMethods,
   credentials: true
 }));
 
-app.use(express.json());
-
-// Updated endpoints (using dynamic origin from headers)
+// Signup endpoint
 app.post('/signup', async (req, res) => {
     console.log('Received signup request body:', req.body);
     const { username, email, password } = req.body;
-    const origin = req.headers.origin;
     
     if (!username || !email || !password) {
-        return res.status(400)
-                  .header('Access-Control-Allow-Origin', origin)
-                  .json({ error: 'Missing required fields' });
+        return res.status(400).json({ error: 'Missing required fields' });
     }
 
     try {
@@ -77,91 +68,68 @@ app.post('/signup', async (req, res) => {
             [username, email, hashedPassword]
         );
         
-        res.status(201)
-           .header('Access-Control-Allow-Origin', origin)
-           .header('Access-Control-Expose-Headers', 'Authorization')
-           .json({ 
-             message: 'User created', 
-             userId: result.rows[0].id 
-           });
+        res.status(201).json({ 
+            message: 'User created', 
+            userId: result.rows[0].id 
+        });
     } catch (err) {
         console.error('Signup error:', err);
-        res.status(500)
-           .header('Access-Control-Allow-Origin', origin)
-           .json({ 
-             error: err.message,
-             details: process.env.NODE_ENV === 'development' ? err.stack : undefined
-           });
+        res.status(500).json({ 
+            error: err.message,
+            details: process.env.NODE_ENV === 'development' ? err.stack : undefined
+        });
     }
 });
 
-// Updated login endpoint
+// Login endpoint
 app.post('/login', async (req, res) => {
     const { email, password } = req.body;
-    const origin = req.headers.origin;
     
     if (!email || !password) {
-        return res.status(400)
-                  .header('Access-Control-Allow-Origin', origin)
-                  .json({ error: 'Email and password are required' });
+        return res.status(400).json({ error: 'Email and password are required' });
     }
 
     try {
         const user = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
         if (user.rows.length === 0) {
-            return res.status(401)
-                      .header('Access-Control-Allow-Origin', origin)
-                      .json({ error: 'User not found' });
+            return res.status(401).json({ error: 'User not found' });
         }
 
         const validPassword = await bcrypt.compare(password, user.rows[0].password);
         if (!validPassword) {
-            return res.status(401)
-                      .header('Access-Control-Allow-Origin', origin)
-                      .json({ error: 'Invalid credentials' });
+            return res.status(401).json({ error: 'Invalid credentials' });
         }
 
         const token = jwt.sign({ id: user.rows[0].id }, 'your_secret_key', { expiresIn: '1h' });
-        
-        res.header('Access-Control-Allow-Origin', origin)
-           .header('Access-Control-Expose-Headers', 'Authorization')
-           .json({ token });
+        res.json({ token });
     } catch (err) {
         console.error('Login error:', err);
-        res.status(500)
-           .header('Access-Control-Allow-Origin', origin)
-           .json({ 
-             error: err.message,
-             details: process.env.NODE_ENV === 'development' ? err.stack : undefined
-           });
+        res.status(500).json({ 
+            error: err.message,
+            details: process.env.NODE_ENV === 'development' ? err.stack : undefined
+        });
     }
 });
 
-// Updated health check endpoint
+// Health check endpoint
 app.get('/health', (req, res) => {
-    const origin = req.headers.origin;
-    res.status(200)
-       .header('Access-Control-Allow-Origin', allowedOrigins.includes(origin) ? origin : '')
-       .json({ 
-         status: 'ok',
-         cors: {
-           allowedOrigins: allowedOrigins,
-           currentOrigin: origin,
-           allowed: allowedOrigins.includes(origin)
-         }
-       });
+    res.status(200).json({ 
+        status: 'ok',
+        cors: {
+            allowedOrigins: allowedOrigins,
+            currentOrigin: req.headers.origin,
+            allowed: allowedOrigins.includes(req.headers.origin)
+        }
+    });
 });
 
 // Error handling middleware
 app.use((err, req, res, next) => {
     console.error(err.stack);
-    const origin = req.headers.origin;
-    res.status(500)
-       .header('Access-Control-Allow-Origin', allowedOrigins.includes(origin) ? origin : '')
-       .json({ 
-         error: 'Something went wrong!',
-         details: process.env.NODE_ENV === 'development' ? err.stack : undefined
-       });
+    res.status(500).json({ 
+        error: 'Something went wrong!',
+        details: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    });
 });
 
 // Start the server
