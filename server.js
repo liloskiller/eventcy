@@ -5,8 +5,6 @@ const app = express();
 const jwt = require('jsonwebtoken');
 import cors from 'cors';
 
-app.use(express.json());
-
 // Enable CORS for your frontend domain
 app.use(cors({
     origin: 'https://eventcy-9xoy.onrender.com', // The domain of your frontend
@@ -15,6 +13,7 @@ app.use(cors({
     credentials: true, // Allow cookies if needed
     enablePreflight: true
 }));
+app.use(express.json())
 // Handle OPTIONS requests for preflight (important for CORS)
 app.options('*', cors());
 
