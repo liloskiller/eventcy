@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "build": "npm install",
+    "start": "node server.js",
     "lint": "next lint"
   },
   "dependencies": {
@@ -48,6 +48,7 @@
     "date-fns": "4.1.0",
     "dotenv": "^16.4.7",
     "embla-carousel-react": "8.5.1",
+    "express": "^4.21.2",
     "express-session": "^1.18.1",
     "framer-motion": "latest",
     "input-otp": "1.4.1",
