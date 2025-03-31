@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import HomePage from "@/components/homepage"
+import HomePage from "@/components/HomePage"
 
 export const metadata: Metadata = {
   title: "Event Booking Platform",

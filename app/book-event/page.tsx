@@ -7,9 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Calendar } from "@/components/ui/calendar"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import Image from "next/image"
-import DarkModeToggle from "@/components/darkmodetoggle"
-import BackButton from "@/components/backbutton"
-import UserInfoForm from "@/components/userinfoform"
+import DarkModeToggle from "@/components/DarkModeToggle"
+import BackButton from "@/components/BackButton"
+import UserInfoForm from "@/components/UserInfoForm"
 
 const events = [
   {

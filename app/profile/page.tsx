@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Loader2, Camera } from "lucide-react"
-import BackButton from "@/components/backbutton"
+import BackButton from "@/components/BackButton"
 import Image from "next/image"
 
 interface User {

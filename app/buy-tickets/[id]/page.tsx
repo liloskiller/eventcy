@@ -5,10 +5,10 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import DarkModeToggle from '@/components/darkmodetoggle'
-import QRCodeGenerator from '@/components/qrcodegenerator'
-import PaymentForm from '@/components/paymentform'
-import BackButton from '@/components/backbutton'
+import DarkModeToggle from '@/components/DarkModeToggle'
+import QRCodeGenerator from '@/components/QRCodeGenerator'
+import PaymentForm from '@/components/PaymentForm'
+import BackButton from '@/components/BackButton'
 
 interface Ticket {
   id: number
