@@ -12,25 +12,35 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import BackButton from "@/components/BackButton"
+import prisma from "@/lib/prisma"
 
 export default function SignUpPage() {
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+  const [password_hash, setPassword] = useState("")
   const [agreeTerms, setAgreeTerms] = useState(false)
   const router = useRouter()
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!agreeTerms) {
       alert("You must agree to the terms and conditions to sign up.")
       return
     }
-    // Here you would typically handle the sign-up logic
-    console.log("Sign-up attempted with:", name, email, password)
-    // For demonstration purposes, we'll just set a user object in localStorage
-    localStorage.setItem("user", JSON.stringify({ name, email }))
+    try {
+      const newUser = await prisma.users.create({
+        data: {
+          name,
+          email,
+          password_hash, // Consider hashing the password in a real app for security
+        },
+      })
+    console.log("Sign-up attempted with:", name, email, password_hash)
     router.push("/home")
+    } catch (error) {
+      console.error("Error creating user:", error)
+      alert("There was an error creating your account. Please try again.")
+    }
   }
 
   return (
@@ -84,7 +94,7 @@ export default function SignUpPage() {
                   id="password"
                   type="password"
                   placeholder="Enter your password"
-                  value={password}
+                  value={password_hash}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-purple-50 dark:bg-purple-900/20"
