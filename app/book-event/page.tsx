@@ -1,203 +1,156 @@
-"use client"
+'use client'
 
-import { useState, useEffect } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Calendar } from "@/components/ui/calendar"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import Image from "next/image"
-import DarkModeToggle from "@/components/DarkModeToggle"
-import BackButton from "@/components/BackButton"
-import UserInfoForm from "@/components/UserInfoForm"
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import Image from 'next/image'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Card, CardContent, CardHeader, CardTitle } from '../../../components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import DarkModeToggle from '@/components/DarkModeToggle'
+import QRCodeGenerator from '@/components/QRCodeGenerator'
+import PaymentForm from '@/components/PaymentForm'
+import BackButton from '@/components/BackButton'
 
-const events = [
+interface Event {
+  id: number
+  name: string
+  date: Date
+  location: string
+  club: string
+  description: string
+  aesthetics: string
+  crowd: string
+  image: string
+  price: number
+}
+
+const events: Event[] = [
   {
     id: 1,
-    name: "Summer Beach Party",
+    name: 'Summer Beach Party',
     date: new Date(2023, 6, 15),
-    location: "Nissi Beach, Ayia Napa",
-    images: ["/beach-party1.jpg", "/beach-party2.jpg", "/beach-party3.jpg"],
+    location: 'Nissi Beach, Ayia Napa',
+    club: 'Beach Club Nissi',
+    description: 'Experience the ultimate beach party with world-class DJs and endless summer vibes.',
+    aesthetics: 'Tropical paradise with palm trees, white sand, and crystal-clear waters.',
+    crowd: 'Young, energetic party-goers looking for a fun-filled beach experience.',
+    image: '/beach-club.jpg',
+    price: 30
   },
   {
     id: 2,
-    name: "Foam Party Extravaganza",
+    name: 'Foam Party Extravaganza',
     date: new Date(2023, 6, 22),
-    location: "Club Aqua, Limassol",
-    images: ["/foam-party1.jpg", "/foam-party2.jpg", "/foam-party3.jpg"],
+    location: 'Club Aqua, Limassol',
+    club: 'Club Aqua',
+    description: 'Get ready for a night of foam-filled fun with amazing music and unforgettable memories.',
+    aesthetics: 'Modern club with state-of-the-art lighting and sound systems, featuring multiple foam cannons.',
+    crowd: 'Diverse mix of locals and tourists looking for a unique party experience.',
+    image: '/foam-party.jpg',
+    price: 25
   },
-  {
-    id: 3,
-    name: "Techno Night",
-    date: new Date(2023, 7, 5),
-    location: "Versus Club, Nicosia",
-    images: ["/techno-night1.jpg", "/techno-night2.jpg", "/techno-night3.jpg"],
-  },
-  {
-    id: 4,
-    name: "Retro Disco Fever",
-    date: new Date(2023, 7, 12),
-    location: "Time Machine, Larnaca",
-    images: ["/retro-disco1.jpg", "/retro-disco2.jpg", "/retro-disco3.jpg"],
-  },
-  {
-    id: 5,
-    name: "Sunset DJ Set",
-    date: new Date(2023, 7, 19),
-    location: "Guaba Beach Bar, Limassol",
-    images: ["/sunset-dj1.jpg", "/sunset-dj2.jpg", "/sunset-dj3.jpg"],
-  },
-  {
-    id: 6,
-    name: "Rock Night",
-    date: new Date(2023, 7, 26),
-    location: "Ravens, Paphos",
-    images: ["/rock-night1.jpg", "/rock-night2.jpg", "/rock-night3.jpg"],
-  },
+  // Add more events as needed
 ]
 
-export default function BookEvent() {
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date())
-  const [filteredEvents, setFilteredEvents] = useState(events)
-  const [currentImageIndex, setCurrentImageIndex] = useState<{ [key: number]: number }>({})
-  const [showUserInfoForm, setShowUserInfoForm] = useState(false)
-  const [user, setUser] = useState<any>(null)
+export default function EventBookingPage({ params }: { params: { id: string } }) {
+  const [event, setEvent] = useState<Event | null>(null)
+  const [showPaymentForm, setShowPaymentForm] = useState(false)
+  const [showQRCode, setShowQRCode] = useState(false)
+  const router = useRouter()
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user")
-    if (storedUser) {
-      setUser(JSON.parse(storedUser))
-    }
-  }, [])
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentImageIndex((prevState) => {
-        const newState = { ...prevState }
-        events.forEach((event) => {
-          newState[event.id] = (newState[event.id] + 1) % event.images.length || 0
-        })
-        return newState
-      })
-    }, 5000)
-
-    return () => clearInterval(interval)
-  }, [])
-
-  const handleDateSelect = (date: Date | undefined) => {
-    setSelectedDate(date)
-    if (date) {
-      setFilteredEvents(events.filter((event) => event.date.toDateString() === date.toDateString()))
+    const eventId = parseInt(params.id)
+    const foundEvent = events.find(e => e.id === eventId)
+    if (foundEvent) {
+      setEvent(foundEvent)
     } else {
-      setFilteredEvents(events)
+      router.push('/book-event')
     }
+  }, [params.id, router])
+
+  const handlePaymentSuccess = () => {
+    setShowQRCode(true)
+    setShowPaymentForm(false)
   }
 
-  const handleBookNow = () => {
-    if (!user) {
-      setShowUserInfoForm(true)
-    } else {
-      // Proceed with booking
-      console.log("Booking with user:", user)
-    }
-  }
-
-  const handleUserInfoSubmit = (data: any) => {
-    localStorage.setItem("user", JSON.stringify(data))
-    setUser(data)
-    setShowUserInfoForm(false)
-    // Proceed with booking
-    console.log("Booking with new user:", data)
+  if (!event) {
+    return <div>Loading...</div>
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-600 to-blue-600 dark:from-gray-900 dark:via-gray-800 dark:to-gray-700 p-4 sm:p-6 font-sans">
-      <BackButton />
       <DarkModeToggle />
-      <motion.h1
-        className="text-3xl sm:text-4xl font-bold text-white text-center mb-6 sm:mb-8"
-        initial={{ opacity: 0, y: -50 }}
+      <BackButton />
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        Book Your Next Event
-      </motion.h1>
-      <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
-        <Card className="w-full lg:w-1/3 dark:bg-gray-800 dark:text-white">
+        <Card className="max-w-4xl mx-auto dark:bg-gray-800 dark:text-white">
           <CardHeader>
-            <CardTitle>Select Date</CardTitle>
+            <CardTitle className="text-2xl sm:text-3xl font-bold">{event.name}</CardTitle>
           </CardHeader>
-          <CardContent>
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={handleDateSelect}
-              className="rounded-md border dark:bg-gray-700 dark:text-white mx-auto"
-            />
+          <CardContent className="space-y-6">
+            <div className="relative h-48 sm:h-64 w-full">
+              <Image
+                src={event.image || "/placeholder.svg"}
+                alt={event.club}
+                layout="fill"
+                objectFit="cover"
+                className="rounded-lg"
+              />
+            </div>
+            <div className="space-y-4">
+              <p className="text-base sm:text-lg"><strong>Date:</strong> {event.date.toDateString()}</p>
+              <p className="text-base sm:text-lg"><strong>Location:</strong> {event.location}</p>
+              <p className="text-base sm:text-lg"><strong>Club:</strong> {event.club}</p>
+              <p className="text-base sm:text-lg">{event.description}</p>
+              <div>
+                <h3 className="text-lg sm:text-xl font-semibold">Club Aesthetics</h3>
+                <p className="text-sm sm:text-base">{event.aesthetics}</p>
+              </div>
+              <div>
+                <h3 className="text-lg sm:text-xl font-semibold">Crowd</h3>
+                <p className="text-sm sm:text-base">{event.crowd}</p>
+              </div>
+              <div className="space-y-4">
+                <p className="text-xl sm:text-2xl font-bold">Price: €{event.price}</p>
+                
+                {!showPaymentForm && !showQRCode && (
+                  <motion.button
+                    onClick={() => setShowPaymentForm(true)}
+                    className="w-full sm:w-auto bg-gradient-to-r from-pink-500 to-yellow-500 hover:from-pink-600 hover:to-yellow-600 text-white font-bold py-2 sm:py-3 px-4 sm:px-6 rounded-full text-base sm:text-lg transition-all duration-200 transform hover:scale-105 active:scale-95"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    Book Now
+                  </motion.button>
+                )}
+              </div>
+              
+              <AnimatePresence mode="wait">
+                {showPaymentForm && (
+                  <PaymentForm amount={event.price} onSuccess={handlePaymentSuccess} />
+                )}
+                {showQRCode && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    className="space-y-4"
+                  >
+                    <h3 className="text-lg font-semibold">Your Booking QR Code</h3>
+                    <QRCodeGenerator data={`Event: ${event.name}, Date: ${event.date.toDateString()}, Price: €${event.price}`} />
+                    <p className="text-sm">Please show this QR code at the entrance. You can also find this in your email.</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </CardContent>
         </Card>
-        <Card className="w-full lg:w-2/3 dark:bg-gray-800 dark:text-white">
-          <CardHeader>
-            <CardTitle>Available Events</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-[500px] sm:h-[600px]">
-              {filteredEvents.map((event) => (
-                <motion.div
-                  key={event.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5 }}
-                  className="mb-6 p-4 bg-white dark:bg-gray-700 rounded-lg shadow-md"
-                >
-                  <div className="flex flex-col sm:flex-row gap-4">
-                    <div className="relative w-full sm:w-1/3 h-48">
-                      <AnimatePresence mode="wait">
-                        <motion.div
-                          key={currentImageIndex[event.id]}
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                          transition={{ duration: 0.5 }}
-                          className="absolute inset-0"
-                        >
-                          <Image
-                            src={event.images[currentImageIndex[event.id]] || "/placeholder.svg"}
-                            alt={event.name}
-                            layout="fill"
-                            objectFit="cover"
-                            className="rounded-lg"
-                          />
-                        </motion.div>
-                      </AnimatePresence>
-                    </div>
-                    <div className="sm:w-2/3">
-                      <h3 className="text-lg sm:text-xl font-semibold text-gray-800 dark:text-gray-100">
-                        {event.name}
-                      </h3>
-                      <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
-                        {event.date.toDateString()}
-                      </p>
-                      <p className="text-sm sm:text-base text-gray-600 dark:text-gray-300">{event.location}</p>
-                      <Button
-                        className="mt-4 w-full sm:w-auto bg-gradient-to-r from-pink-500 to-yellow-500 hover:from-pink-600 hover:to-yellow-600 text-white"
-                        onClick={handleBookNow}
-                      >
-                        Book Now
-                      </Button>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </ScrollArea>
-          </CardContent>
-        </Card>
-      </div>
-      {showUserInfoForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <UserInfoForm onSubmit={handleUserInfoSubmit} />
-        </div>
-      )}
+      </motion.div>
     </div>
   )
 }
