@@ -14,16 +14,29 @@ import BackButton from "@/components/BackButton"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+  const [password_hash, setPassword] = useState("")
   const router = useRouter()
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Here you would typically handle the login logic
-    console.log("Login attempted with:", email, password)
-    // For demonstration purposes, we'll just set a user object in localStorage
-    localStorage.setItem("user", JSON.stringify({ email }))
-    router.push("/home")
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password_hash }), // Send password_hash instead of password
+      });
+    console.log("Login attempted with:", email, password_hash)
+    const data = await response.json();
+
+      if (response.ok) {
+        console.log("Login successful:", data);
+        router.push("/home"); // Redirect after login
+      } else {
+        alert(data.error || "Login failed");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+    }
   }
 
   return (
@@ -63,7 +76,7 @@ export default function LoginPage() {
                   id="password"
                   type="password"
                   placeholder="Enter your password"
-                  value={password}
+                  value={password_hash}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-purple-50 dark:bg-purple-900/20"
