@@ -59,7 +59,7 @@
     "pnpm": "^10.7.0",
     "qrcode": "latest",
     "react": "^19",
-    "react-day-picker": "^8.10.1",
+    "react-day-picker": "^9.6.4",
     "react-dom": "^19",
     "react-dropzone": "latest",
     "react-hook-form": "latest",
