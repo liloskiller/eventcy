@@ -12,8 +12,6 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import BackButton from "@/components/BackButton"
-import prisma from "@/lib/prisma"
-
 export default function SignUpPage() {
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
@@ -28,18 +26,27 @@ export default function SignUpPage() {
       return
     }
     try {
-      const newUser = await prisma.users.create({
-        data: {
+      const response = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
           name,
           email,
-          password_hash, // Consider hashing the password in a real app for security
-        },
-      })
-    console.log("Sign-up attempted with:", name, email, password_hash)
-    router.push("/home")
+          password_hash, // Again, hash this password on the backend!
+        }),
+      });
+  
+      const data = await response.json();
+      if (response.ok) {
+        console.log("User created:", data.user);
+        router.push("/home");
+      } else {
+        console.error("Sign-up failed:", data.error);
+      }
     } catch (error) {
-      console.error("Error creating user:", error)
-      alert("There was an error creating your account. Please try again.")
+      console.error("Error during sign-up:", error);
     }
   }
 
