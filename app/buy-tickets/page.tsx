@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import Link from 'next/link';
-import BackButton from '@/components/BackButton'
+import BackButton from '@/components/backbutton'
 
 const tickets = [
   { id: 1, name: 'Summer Beach Party', date: new Date(2023, 6, 15), price: 25, location: 'Nissi Beach, Ayia Napa' },

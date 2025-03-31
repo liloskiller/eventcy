@@ -8,10 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import DarkModeToggle from '@/components/DarkModeToggle'
-import QRCodeGenerator from '@/components/QRCodeGenerator'
-import PaymentForm from '@/components/PaymentForm'
-import BackButton from '@/components/BackButton'
+import DarkModeToggle from '@/components/darkmodetoggle'
+import QRCodeGenerator from '@/components/qrcodegenerator'
+import PaymentForm from '@/components/paymentform'
+import BackButton from '@/components/backbutton'
 
 interface Event {
   id: number
@@ -116,7 +116,7 @@ export default function EventBookingPage({ params }: { params: { id: string } })
                 <p className="text-sm sm:text-base">{event.crowd}</p>
               </div>
               <div className="space-y-4">
-                <p className="text-xl sm:text-2xl font-bold">Price: â‚¬{event.price}</p>
+                <p className="text-xl sm:text-2xl font-bold">Price: €{event.price}</p>
                 
                 {!showPaymentForm && !showQRCode && (
                   <motion.button
@@ -142,7 +142,7 @@ export default function EventBookingPage({ params }: { params: { id: string } })
                     className="space-y-4"
                   >
                     <h3 className="text-lg font-semibold">Your Booking QR Code</h3>
-                    <QRCodeGenerator data={`Event: ${event.name}, Date: ${event.date.toDateString()}, Price: â‚¬${event.price}`} />
+                    <QRCodeGenerator data={`Event: ${event.name}, Date: ${event.date.toDateString()}, Price: €${event.price}`} />
                     <p className="text-sm">Please show this QR code at the entrance. You can also find this in your email.</p>
                   </motion.div>
                 )}

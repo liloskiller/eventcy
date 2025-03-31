@@ -4,8 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "rd /s /q .next || ver > nul",
+    "postinstall": "npm run check-case",
+    "check-case": "node ./scripts/check-case.js",
     "build": "next build",
     "start": "next start",
+    "clean": "rd /s /q node_modules .next || ver > nul",
     "lint": "next lint"
   },
   "dependencies": {
