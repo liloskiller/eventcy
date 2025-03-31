@@ -106,7 +106,7 @@ export default function HomePage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm sm:text-base md:text-lg">{clubInfo[city]}</p>
+                <p className="text-sm sm:text-base md:text-lg">{clubInfo["Nicosia"]}</p>
               </CardContent>
             </Card>
             <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">

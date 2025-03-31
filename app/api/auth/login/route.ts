@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs"; // Import bcrypt for password comparison
+import jwt from "jsonwebtoken";
+
+const SECRET_KEY = process.env.JWT_SECRET as string;
 
 export async function POST(request: Request) {
   try {
@@ -22,7 +25,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
-    return NextResponse.json({ message: "Login successful", user });
+      // Generate JWT token
+        const token = jwt.sign({ userId: user.id, email: user.email }, SECRET_KEY, {
+        expiresIn: "7d", 
+    });
+
+    return NextResponse.json({ message: "Login successful",token, user });
   } catch (error) {
     return NextResponse.json({ error: "Error logging in" }, { status: 500 });
   }
