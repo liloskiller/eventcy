@@ -1,5 +1,7 @@
 "use client"
 
+import type React from "react"
+
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -16,43 +18,19 @@ export default function SignUpPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [agreeTerms, setAgreeTerms] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState("")
   const router = useRouter()
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    
     if (!agreeTerms) {
-      setError("You must agree to the terms and conditions")
+      alert("You must agree to the terms and conditions to sign up.")
       return
     }
-
-    setIsLoading(true)
-    setError("")
-
-    try {
-      const formData = new FormData()
-      formData.append('name', name)
-      formData.append('email', email)
-      formData.append('password', password)
-
-      const response = await fetch('/signup', {
-        method: 'POST',
-        body: formData
-      })
-
-      if (response.ok) {
-        router.push('/home')
-      } else {
-        const errorText = await response.text()
-        throw new Error(errorText || 'Signup failed')
-      }
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setIsLoading(false)
-    }
+    // Here you would typically handle the sign-up logic
+    console.log("Sign-up attempted with:", name, email, password)
+    // For demonstration purposes, we'll just set a user object in localStorage
+    localStorage.setItem("user", JSON.stringify({ name, email }))
+    router.push("/home")
   }
 
   return (
@@ -69,11 +47,6 @@ export default function SignUpPage() {
             <CardTitle className="text-3xl font-bold text-center text-purple-700">Sign Up</CardTitle>
           </CardHeader>
           <CardContent className="bg-white rounded-b-lg pt-6">
-            {error && (
-              <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md text-sm">
-                {error}
-              </div>
-            )}
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="name" className="text-sm font-medium text-gray-700">
@@ -133,12 +106,9 @@ export default function SignUpPage() {
               </div>
               <Button
                 type="submit"
-                disabled={isLoading}
-                className={`w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white font-bold py-3 rounded-md transition duration-300 ease-in-out ${
-                  isLoading ? 'opacity-70' : 'hover:scale-105'
-                }`}
+                className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white font-bold py-3 rounded-md transition duration-300 ease-in-out transform hover:scale-105"
               >
-                {isLoading ? 'Creating account...' : 'Sign Up'}
+                Sign Up
               </Button>
             </form>
             <div className="mt-6 text-center">
