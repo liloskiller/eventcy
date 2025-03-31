@@ -8,10 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import DarkModeToggle from '@/components/darkmodetoggle'
-import QRCodeGenerator from '@/components/qrcodegenerator'
-import PaymentForm from '@/components/paymentform'
-import BackButton from '@/components/backbutton'
+import DarkModeToggle from '../../../components/darkmodetoggle'
+import QRCodeGenerator from '../../../components/qrcodegenerator'
+import PaymentForm from '../../../components/paymentform'
+import BackButton from '../../../components/backbutton'
 
 interface Event {
   id: number
