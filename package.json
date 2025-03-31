@@ -6,11 +6,12 @@
     "dev": "next dev",
     "prebuild": "rd /s /q .next || ver > nul",
     "postinstall": "npm run check-case",
-    "check-case": "node ./scripts/check-case.js",
+    "check-case": "node scripts/check-case.js",
     "build": "next build",
     "start": "next start",
-    "clean": "rd /s /q node_modules .next || ver > nul",
-    "lint": "next lint"
+    "clean": "rimraf node_modules .next",
+    "lint": "next lint",
+    "render-build": "npm run clean && npm install --force && npm run build"
   },
   "dependencies": {
     "@emotion/is-prop-valid": "latest",
@@ -81,6 +82,7 @@
     "@types/react-dom": "^19",
     "autoprefixer": "^10.4.21",
     "postcss": "^8.5.3",
+    "rimraf": "^6.0.1",
     "tailwindcss": "^3.4.17",
     "typescript": "^5"
   }
