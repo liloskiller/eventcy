@@ -3,16 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "prebuild": "rimraf .next",
-    "postinstall": "npm run check-case",
-    "check-case": "node scripts/check-case.js",
-    "build": "next build",
-    "start": "next start",
-    "clean": "rimraf node_modules .next",
-    "lint": "next lint",
-    "render-build": "npm run clean && npm install --force && npm run build"
-  },
+  "dev": "next dev",
+  "prebuild": "npx rimraf .next",
+  "postinstall": "npm run check-case",
+  "check-case": "node scripts/check-case.js", 
+  "build": "next build",
+  "start": "next start",
+  "clean": "npx rimraf node_modules .next",
+  "lint": "next lint",
+  "render-build": "npm run clean && npm install --force && npm run build"
+},
   "dependencies": {
     "@emotion/is-prop-valid": "latest",
     "@hookform/resolvers": "latest",
