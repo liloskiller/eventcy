@@ -12,21 +12,6 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import BackButton from "@/components/BackButton"
-import { NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
-
-
-export async function POST(req: Request) {
-  const { name, email, password_hash } = await req.json();
-
-  // Example user creation logic (replace with your actual DB logic)
-  const user = { id: 1, name, email };
-
-  // Generate JWT token
-  const token = jwt.sign({ userId: user.id, email: user.email }, "7beV4PmdmyNzkVmzV1nn3YwaCzoTzpdaU8qvH6RQ", { expiresIn: "1h" });
-
-  return NextResponse.json({ user, token });
-}
 
 export default function SignUpPage() {
   const [name, setName] = useState("")
