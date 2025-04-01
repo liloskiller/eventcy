@@ -20,10 +20,10 @@ export default function SignUpPage() {
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     if (!agreeTerms) {
-      alert("You must agree to the terms and conditions to sign up.")
-      return
+      alert("You must agree to the terms and conditions to sign up.");
+      return;
     }
     try {
       const response = await fetch("/api/auth/signup", {
@@ -31,16 +31,19 @@ export default function SignUpPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          name,
-          email,
-          password_hash, // Again, hash this password on the backend!
-        }),
+        body: JSON.stringify({ name, email, password_hash }),
       });
   
       const data = await response.json();
       if (response.ok) {
         console.log("User created:", data.user);
+  
+        // Store token (if returned)
+        if (data.token) {
+          localStorage.setItem("authToken", data.token); // Store JWT
+        }
+  
+        // Redirect after storing authentication
         router.push("/home");
       } else {
         console.error("Sign-up failed:", data.error);
@@ -48,7 +51,8 @@ export default function SignUpPage() {
     } catch (error) {
       console.error("Error during sign-up:", error);
     }
-  }
+  };
+  
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center p-4">
