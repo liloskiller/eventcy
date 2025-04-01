@@ -25,6 +25,7 @@ export default function SignUpPage() {
       alert("You must agree to the terms and conditions to sign up.");
       return;
     }
+  
     try {
       const response = await fetch("/api/auth/signup", {
         method: "POST",
@@ -35,15 +36,15 @@ export default function SignUpPage() {
       });
   
       const data = await response.json();
+      console.log("Full response data:", data); // Log response
+  
       if (response.ok) {
-        console.log("User created:", data.user);
-  
-        // Store token (if returned)
         if (data.token) {
-          localStorage.setItem("authToken", data.token); // Store JWT
+          console.log("Token received:", data.token);
+          localStorage.setItem("authToken", data.token); // Store token
+        } else {
+          console.error("No token received.");
         }
-  
-        // Redirect after storing authentication
         router.push("/home");
       } else {
         console.error("Sign-up failed:", data.error);
@@ -52,6 +53,7 @@ export default function SignUpPage() {
       console.error("Error during sign-up:", error);
     }
   };
+  
   
 
   return (
