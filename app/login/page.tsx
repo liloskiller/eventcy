@@ -4,6 +4,7 @@ import type React from "react"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useAuth } from "@/context/AuthContext";
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
@@ -17,6 +18,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password_hash, setPassword] = useState("")
   const router = useRouter()
+  const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -32,6 +34,7 @@ export default function LoginPage() {
       if (response.ok) {
         console.log("Login successful:", data);
         localStorage.setItem("token", data.token);
+        login(data.token);
         router.push("/home"); // Redirect after login
       } else {
         alert(data.error || "Login failed");

@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Loader2 } from "lucide-react"
 import BackButton from "@/components/BackButton"
-import { toast } from "sonner" // Optional: for notifications
+import { toast } from "sonner"
 
 interface User {
   id: number
@@ -26,10 +26,6 @@ export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
-
-  useEffect(() => {
-    fetchUserProfile()
-  }, [])
 
   const fetchUserProfile = async () => {
     setIsLoading(true)
@@ -88,7 +84,6 @@ export default function ProfilePage() {
         },
         body: JSON.stringify({
           name: user.name,
-          surname: user.surname,
           email: user.email,
           phone: user.phone
         })
