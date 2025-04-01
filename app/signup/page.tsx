@@ -4,6 +4,7 @@ import type React from "react"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useAuth } from "@/context/AuthContext";
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
@@ -12,17 +13,18 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import BackButton from "@/components/BackButton"
-import { useAuth } from "@/context/AuthContext";
 
-const { login } = useAuth();
+
+
 
 export default function SignUpPage() {
+  const { login } = useAuth();
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [password_hash, setPassword] = useState("")
   const [agreeTerms, setAgreeTerms] = useState(false)
   const router = useRouter()
-  const { login } = useAuth();
+  
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
