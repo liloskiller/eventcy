@@ -7,16 +7,14 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Loader2, Camera } from "lucide-react"
+import { Loader2 } from "lucide-react"
 import BackButton from "@/components/BackButton"
-import Image from "next/image"
 
 interface User {
   name: string
   surname: string
   email: string
   phone: string
-  avatar?: string
 }
 
 export default function ProfilePage() {
@@ -38,17 +36,6 @@ export default function ProfilePage() {
     if (user) {
       localStorage.setItem("user", JSON.stringify(user))
       setIsEditing(false)
-    }
-  }
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setUser((prev) => (prev ? { ...prev, avatar: reader.result as string } : null))
-      }
-      reader.readAsDataURL(file)
     }
   }
 
@@ -74,31 +61,6 @@ export default function ProfilePage() {
             <CardTitle className="text-2xl sm:text-3xl font-bold text-center">Your Profile</CardTitle>
           </CardHeader>
           <CardContent className="p-6">
-            <div className="flex flex-col items-center mb-6">
-              <div className="relative">
-                <Image
-                  src={user.avatar || "/placeholder-avatar.png"}
-                  alt="Profile"
-                  width={120}
-                  height={120}
-                  className="rounded-full border-4 border-purple-500"
-                />
-                <label
-                  htmlFor="avatar-upload"
-                  className="absolute bottom-0 right-0 bg-purple-500 rounded-full p-2 cursor-pointer"
-                >
-                  <Camera className="h-5 w-5 text-white" />
-                </label>
-                <input
-                  id="avatar-upload"
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={handleImageUpload}
-                  disabled={!isEditing}
-                />
-              </div>
-            </div>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -169,4 +131,3 @@ export default function ProfilePage() {
     </div>
   )
 }
-
