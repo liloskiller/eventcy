@@ -43,10 +43,11 @@ export default function SignUpPage() {
         if (data.token) {
           console.log("Token received:", data.token);
           localStorage.setItem("authToken", data.token); // Store token
+          router.push("/home");
         } else {
           console.error("No token received.");
         }
-        router.push("/home");
+        
       } else {
         console.error("Sign-up failed:", data.error);
       }
