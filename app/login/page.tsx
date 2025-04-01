@@ -33,7 +33,7 @@ export default function LoginPage() {
 
       if (response.ok) {
         console.log("Login successful:", data);
-        localStorage.setItem("token", data.token);
+        //localStorage.setItem("token", data.token);
         login(data.token);
         router.push("/home"); // Redirect after login
       } else {
