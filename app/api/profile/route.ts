@@ -17,11 +17,11 @@ export async function GET(request: Request) {
     const token = authorization.split(" ")[1];
     
     // Verify the token
-    const decoded = jwt.verify(token, SECRET_KEY) as { userId: number; email: string };
+    const decoded = jwt.verify(token, SECRET_KEY) as { userId: string; email: string };
     
     // Get user data from database
     const user = await prisma.users.findUnique({
-      where: { id: decoded.userId },
+      where: { id: parseInt(decoded.userId) },
       select: {
         id: true,
         name: true,
@@ -40,6 +40,7 @@ export async function GET(request: Request) {
     if (error instanceof jwt.JsonWebTokenError) {
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
+    console.error("Profile error:", error);
     return NextResponse.json({ error: "Error fetching profile" }, { status: 500 });
   }
 }
@@ -57,14 +58,14 @@ export async function PUT(request: Request) {
     const token = authorization.split(" ")[1];
     
     // Verify the token
-    const decoded = jwt.verify(token, SECRET_KEY) as { userId: number; email: string };
+    const decoded = jwt.verify(token, SECRET_KEY) as { userId: string; email: string };
     
     // Get the updated user data from the request body
     const { name, email, phone_number } = await request.json();
     
     // Update the user in the database
     await prisma.users.update({
-      where: { id: decoded.userId },
+      where: { id: parseInt(decoded.userId) },
       data: {
         name,
         email,
@@ -77,6 +78,7 @@ export async function PUT(request: Request) {
     if (error instanceof jwt.JsonWebTokenError) {
       return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
+    console.error("Update profile error:", error);
     return NextResponse.json({ error: "Error updating profile" }, { status: 500 });
   }
 }

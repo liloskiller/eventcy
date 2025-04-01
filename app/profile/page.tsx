@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Loader2 } from "lucide-react"
 import BackButton from "@/components/BackButton"
-import { toast } from "sonner"
+import { useAuth } from "@/context/AuthContext"
 
 interface User {
   id: number
@@ -19,19 +19,27 @@ interface User {
   phone: string
 }
 
-
-
 export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null)
   const [isEditing, setIsEditing] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
+  const { user: authUser } = useAuth()
+
+  useEffect(() => {
+    if (!authUser) {
+      router.push("/login")
+      return
+    }
+    
+    fetchUserProfile()
+  }, [authUser, router])
 
   const fetchUserProfile = async () => {
     setIsLoading(true)
     try {
-      // Get token from localStorage
-      const token = localStorage.getItem("token")
+      // Get token from localStorage with the correct key
+      const token = localStorage.getItem("authToken")
       
       if (!token) {
         router.push("/login")
@@ -47,7 +55,7 @@ export default function ProfilePage() {
       if (!response.ok) {
         if (response.status === 401) {
           // Token expired or invalid
-          localStorage.removeItem("token")
+          localStorage.removeItem("authToken")
           router.push("/login")
           return
         }
@@ -58,7 +66,6 @@ export default function ProfilePage() {
       setUser(userData)
     } catch (error) {
       console.error("Error fetching profile:", error)
-      toast?.error("Error loading profile")
     } finally {
       setIsLoading(false)
     }
@@ -69,7 +76,7 @@ export default function ProfilePage() {
     if (!user) return
     
     try {
-      const token = localStorage.getItem("token")
+      const token = localStorage.getItem("authToken")
       
       if (!token) {
         router.push("/login")
@@ -84,6 +91,7 @@ export default function ProfilePage() {
         },
         body: JSON.stringify({
           name: user.name,
+          surname: user.surname,
           email: user.email,
           phone: user.phone
         })
@@ -94,10 +102,10 @@ export default function ProfilePage() {
       }
       
       setIsEditing(false)
-      toast?.success("Profile updated successfully")
+      alert("Profile updated successfully")
     } catch (error) {
       console.error("Error updating profile:", error)
-      toast?.error("Error updating profile")
+      alert("Error updating profile")
     }
   }
 
