@@ -12,6 +12,9 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import BackButton from "@/components/BackButton"
+import { useAuth } from "@/context/AuthContext";
+
+const { login } = useAuth();
 
 export default function SignUpPage() {
   const [name, setName] = useState("")
@@ -19,6 +22,7 @@ export default function SignUpPage() {
   const [password_hash, setPassword] = useState("")
   const [agreeTerms, setAgreeTerms] = useState(false)
   const router = useRouter()
+  const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,12 +41,10 @@ export default function SignUpPage() {
       });
   
       const data = await response.json();
-      console.log("Full response data:", data); // Log response
-  
+
       if (response.ok) {
         if (data.token) {
-          console.log("Token received:", data.token);
-          localStorage.setItem("authToken", data.token); // Store token
+          login(data.token);
           router.push("/home");
         } else {
           console.error("No token received.");
