@@ -9,40 +9,121 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Loader2 } from "lucide-react"
 import BackButton from "@/components/BackButton"
+import { toast } from "sonner" // Optional: for notifications
 
 interface User {
+  id: number
   name: string
   surname: string
   email: string
   phone: string
 }
 
+
+
 export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null)
   const [isEditing, setIsEditing] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
 
   useEffect(() => {
-    const storedUser = localStorage.getItem("user")
-    if (storedUser) {
-      setUser(JSON.parse(storedUser))
-    } else {
-      router.push("/login")
-    }
-  }, [router])
+    fetchUserProfile()
+  }, [])
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    if (user) {
-      localStorage.setItem("user", JSON.stringify(user))
-      setIsEditing(false)
+  const fetchUserProfile = async () => {
+    setIsLoading(true)
+    try {
+      // Get token from localStorage
+      const token = localStorage.getItem("token")
+      
+      if (!token) {
+        router.push("/login")
+        return
+      }
+      
+      const response = await fetch("/api/profile", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          // Token expired or invalid
+          localStorage.removeItem("token")
+          router.push("/login")
+          return
+        }
+        throw new Error("Failed to fetch profile")
+      }
+      
+      const userData = await response.json()
+      setUser(userData)
+    } catch (error) {
+      console.error("Error fetching profile:", error)
+      toast?.error("Error loading profile")
+    } finally {
+      setIsLoading(false)
     }
+  }
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (!user) return
+    
+    try {
+      const token = localStorage.getItem("token")
+      
+      if (!token) {
+        router.push("/login")
+        return
+      }
+      
+      const response = await fetch("/api/profile", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          name: user.name,
+          surname: user.surname,
+          email: user.email,
+          phone: user.phone
+        })
+      })
+      
+      if (!response.ok) {
+        throw new Error("Failed to update profile")
+      }
+      
+      setIsEditing(false)
+      toast?.success("Profile updated successfully")
+    } catch (error) {
+      console.error("Error updating profile:", error)
+      toast?.error("Error updating profile")
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-white" />
+      </div>
+    )
   }
 
   if (!user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-white" />
+        <Card className="p-6 w-full max-w-md">
+          <CardTitle className="mb-4">Error</CardTitle>
+          <p>Unable to load profile. Please try again later.</p>
+          <Button className="mt-4 w-full" onClick={() => router.push("/login")}>
+            Back to Login
+          </Button>
+        </Card>
       </div>
     )
   }
