@@ -1,217 +1,111 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import type React from "react"
+
+import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { useAuth } from "@/context/AuthContext";
+import Link from "next/link"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Loader2 } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import BackButton from "@/components/BackButton"
-import { useAuth } from "@/context/AuthContext"
 
-interface User {
-  id: number
-  name: string
-  surname: string
-  email: string
-  phone: string
-}
 
-export default function ProfilePage() {
-  const [user, setUser] = useState<User | null>(null)
-  const [isEditing, setIsEditing] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
+export default function LoginPage() {
+  const [email, setEmail] = useState("")
+  const [password_hash, setPassword] = useState("")
   const router = useRouter()
-  const { user: authUser } = useAuth()
+  const { login } = useAuth();
 
-  useEffect(() => {
-    if (!authUser) {
-      router.push("/login")
-      return
-    }
-    
-    fetchUserProfile()
-  }, [authUser, router])
-
-  const fetchUserProfile = async () => {
-    setIsLoading(true)
-    try {
-      // Get token from localStorage with the correct key
-      const token = localStorage.getItem("authToken")
-      
-      if (!token) {
-        router.push("/login")
-        return
-      }
-      
-      const response = await fetch("/api/profile", {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      })
-      
-      if (!response.ok) {
-        if (response.status === 401) {
-          // Token expired or invalid
-          localStorage.removeItem("authToken")
-          router.push("/login")
-          return
-        }
-        throw new Error("Failed to fetch profile")
-      }
-      
-      const userData = await response.json()
-      setUser(userData)
-    } catch (error) {
-      console.error("Error fetching profile:", error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!user) return
-    
     try {
-      const token = localStorage.getItem("authToken")
-      
-      if (!token) {
-        router.push("/login")
-        return
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password_hash }), // Send password_hash instead of password
+      });
+    console.log("Login attempted with:", email, password_hash)
+    const data = await response.json();
+
+      if (response.ok) {
+        console.log("Login successful:", data);
+        
+        login(data.token);
+        router.push("/home"); // Redirect after login
+      } else {
+        alert(data.error || "Login failed");
       }
-      
-      const response = await fetch("/api/profile", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          name: user.name,
-          surname: user.surname,
-          email: user.email,
-          phone: user.phone
-        })
-      })
-      
-      if (!response.ok) {
-        throw new Error("Failed to update profile")
-      }
-      
-      setIsEditing(false)
-      alert("Profile updated successfully")
     } catch (error) {
-      console.error("Error updating profile:", error)
-      alert("Error updating profile")
+      console.error("Login error:", error);
     }
-  }
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-white" />
-      </div>
-    )
-  }
-
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
-        <Card className="p-6 w-full max-w-md">
-          <CardTitle className="mb-4">Error</CardTitle>
-          <p>Unable to load profile. Please try again later.</p>
-          <Button className="mt-4 w-full" onClick={() => router.push("/login")}>
-            Back to Login
-          </Button>
-        </Card>
-      </div>
-    )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-600 to-blue-600 p-4 sm:p-6 font-sans">
+    <div className="min-h-screen bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center p-4">
       <BackButton />
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: -50 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="max-w-2xl mx-auto mt-10"
+        className="w-full max-w-md"
       >
-        <Card className="bg-white shadow-xl">
-          <CardHeader className="bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-t-lg">
-            <CardTitle className="text-2xl sm:text-3xl font-bold text-center">Your Profile</CardTitle>
+        <Card className="border-0 shadow-lg">
+          <CardHeader className="bg-white rounded-t-lg">
+            <CardTitle className="text-3xl font-bold text-center text-purple-700">Login</CardTitle>
           </CardHeader>
-          <CardContent className="p-6">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Name</Label>
-                  <Input
-                    id="name"
-                    value={user.name}
-                    onChange={(e) => setUser({ ...user, name: e.target.value })}
-                    disabled={!isEditing}
-                    className="bg-gray-50"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="surname">Surname</Label>
-                  <Input
-                    id="surname"
-                    value={user.surname}
-                    onChange={(e) => setUser({ ...user, surname: e.target.value })}
-                    disabled={!isEditing}
-                    className="bg-gray-50"
-                  />
-                </div>
-              </div>
+          <CardContent className="bg-white rounded-b-lg pt-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                  Email
+                </Label>
                 <Input
                   id="email"
                   type="email"
-                  value={user.email}
-                  onChange={(e) => setUser({ ...user, email: e.target.value })}
-                  disabled={!isEditing}
-                  className="bg-gray-50"
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-purple-50 dark:bg-purple-900/20"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
+                <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+                  Password
+                </Label>
                 <Input
-                  id="phone"
-                  type="tel"
-                  value={user.phone}
-                  onChange={(e) => setUser({ ...user, phone: e.target.value })}
-                  disabled={!isEditing}
-                  className="bg-gray-50"
+                  id="password"
+                  type="password"
+                  placeholder="Enter your password"
+                  value={password_hash}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-purple-50 dark:bg-purple-900/20"
                 />
               </div>
-              {isEditing ? (
-                <div className="flex justify-end space-x-2">
-                  <Button type="submit" className="bg-green-500 hover:bg-green-600">
-                    Save Changes
-                  </Button>
-                  <Button type="button" variant="outline" onClick={() => setIsEditing(false)}>
-                    Cancel
-                  </Button>
-                </div>
-              ) : (
-                <Button
-                  type="button"
-                  onClick={() => setIsEditing(true)}
-                  className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white"
-                >
-                  Edit Profile
-                </Button>
-              )}
+              <Button
+                type="submit"
+                className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white font-bold py-3 rounded-md transition duration-300 ease-in-out transform hover:scale-105"
+              >
+                Login
+              </Button>
             </form>
+            <div className="mt-6 text-center">
+              <p className="text-sm text-gray-600">
+                Don&apos;t have an account?{" "}
+                <Link href="/signup" className="text-purple-600 hover:text-purple-800 font-semibold">
+                  Sign Up
+                </Link>
+              </p>
+            </div>
           </CardContent>
         </Card>
       </motion.div>
     </div>
   )
 }
+
