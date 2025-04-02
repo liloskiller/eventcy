@@ -16,7 +16,7 @@ interface User {
   name: string
   surname: string
   email: string
-  phone: string
+  phone_number: string
 }
 
 export default function ProfilePage() {
@@ -93,7 +93,7 @@ export default function ProfilePage() {
           name: user.name,
           surname: user.surname,
           email: user.email,
-          phone: user.phone
+          phone_number: user.phone_number
         })
       })
       
@@ -184,8 +184,8 @@ export default function ProfilePage() {
                 <Input
                   id="phone"
                   type="tel"
-                  value={user.phone}
-                  onChange={(e) => setUser({ ...user, phone: e.target.value })}
+                  value={user.phone_number}
+                  onChange={(e) => setUser({ ...user, phone_number: e.target.value })}
                   disabled={!isEditing}
                   className="bg-gray-50"
                 />
