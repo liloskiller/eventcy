@@ -1,217 +1,148 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { motion } from "framer-motion"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Loader2 } from "lucide-react"
-import BackButton from "@/components/BackButton"
-import { useAuth } from "@/context/AuthContext"
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Loader2 } from "lucide-react";
+import BackButton from "@/components/BackButton";
+import { useAuth } from "@/context/AuthContext";
 
 interface User {
-  id: number
-  name: string
-  surname: string
-  email: string
-  phone_number: string
+  id: number;
+  name: string;
+  surname: string;
+  email: string;
+  phone_number: string;
 }
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<User | null>(null)
-  const [isEditing, setIsEditing] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
-  const router = useRouter()
-  const { user: authUser } = useAuth()
+  const [user, setUser] = useState<User | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
+  const { user: authUser } = useAuth();
 
   useEffect(() => {
     if (!authUser) {
-      router.push("/login")
-      return
+      router.push("/login");
+      return;
     }
-    
-    fetchUserProfile()
-  }, [authUser, router])
+    fetchUserProfile();
+  }, [authUser, router]);
 
   const fetchUserProfile = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      // Get token from localStorage with the correct key
-      const token = localStorage.getItem("authToken")
-      
+      const token = localStorage.getItem("authToken");
       if (!token) {
-        router.push("/login")
-        return
+        router.push("/login");
+        return;
       }
-      
       const response = await fetch("/api/profile", {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      })
-      
+        headers: { Authorization: `Bearer ${token}` },
+      });
       if (!response.ok) {
         if (response.status === 401) {
-          // Token expired or invalid
-          localStorage.removeItem("authToken")
-          router.push("/login")
-          return
+          localStorage.removeItem("authToken");
+          router.push("/login");
+          return;
         }
-        throw new Error("Failed to fetch profile")
+        throw new Error("Failed to fetch profile");
       }
-      
-      const userData = await response.json()
-      setUser(userData)
+      const userData = await response.json();
+      setUser(userData);
     } catch (error) {
-      console.error("Error fetching profile:", error)
+      console.error("Error fetching profile:", error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
+
+  const formatPhoneNumber = (value: string) => {
+    const digits = value.replace(/\D/g, "");
+    return digits.length >= 3 ? `${digits.slice(0, 2)} ${digits.slice(2)}` : digits;
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (user) {
+      setUser({ ...user, phone_number: formatPhoneNumber(e.target.value) });
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    if (!user) return
-    
+    e.preventDefault();
+    if (!user) return;
     try {
-      const token = localStorage.getItem("authToken")
-      
+      const token = localStorage.getItem("authToken");
       if (!token) {
-        router.push("/login")
-        return
+        router.push("/login");
+        return;
       }
-      
       const response = await fetch("/api/profile", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
+          Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          name: user.name,
-          surname: user.surname,
-          email: user.email,
-          phone_number: user.phone_number
-        })
-      })
-      
-      if (!response.ok) {
-        throw new Error("Failed to update profile")
-      }
-      
-      setIsEditing(false)
-      alert("Profile updated successfully")
+        body: JSON.stringify(user),
+      });
+      if (!response.ok) throw new Error("Failed to update profile");
+      setIsEditing(false);
+      alert("Profile updated successfully");
     } catch (error) {
-      console.error("Error updating profile:", error)
-      alert("Error updating profile")
+      console.error("Error updating profile:", error);
+      alert("Error updating profile");
     }
-  }
+  };
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-white" />
       </div>
-    )
+    );
   }
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <Card className="p-6 w-full max-w-md">
-          <CardTitle className="mb-4">Error</CardTitle>
+          <CardTitle>Error</CardTitle>
           <p>Unable to load profile. Please try again later.</p>
-          <Button className="mt-4 w-full" onClick={() => router.push("/login")}>
-            Back to Login
-          </Button>
+          <Button onClick={() => router.push("/login")}>Back to Login</Button>
         </Card>
       </div>
-    )
+    );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-600 to-blue-600 p-4 sm:p-6 font-sans">
+    <div className="min-h-screen p-4 sm:p-6">
       <BackButton />
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="max-w-2xl mx-auto mt-10"
-      >
-        <Card className="bg-white shadow-xl">
-          <CardHeader className="bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-t-lg">
-            <CardTitle className="text-2xl sm:text-3xl font-bold text-center">Your Profile</CardTitle>
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="max-w-2xl mx-auto mt-10">
+        <Card>
+          <CardHeader>
+            <CardTitle>Your Profile</CardTitle>
           </CardHeader>
-          <CardContent className="p-6">
+          <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Name</Label>
-                  <Input
-                    id="name"
-                    value={user.name}
-                    onChange={(e) => setUser({ ...user, name: e.target.value })}
-                    disabled={!isEditing}
-                    className="bg-gray-50"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="surname">Surname</Label>
-                  <Input
-                    id="surname"
-                    value={user.surname}
-                    onChange={(e) => setUser({ ...user, surname: e.target.value })}
-                    disabled={!isEditing}
-                    className="bg-gray-50"
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={user.email}
-                  onChange={(e) => setUser({ ...user, email: e.target.value })}
-                  disabled={!isEditing}
-                  className="bg-gray-50"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  value={user.phone_number}
-                  onChange={(e) => setUser({ ...user, phone_number: e.target.value })}
-                  disabled={!isEditing}
-                  className="bg-gray-50"
-                />
-              </div>
+              <Label htmlFor="phone">Phone Number</Label>
+              <Input id="phone" type="tel" value={user.phone_number} onChange={handlePhoneChange} disabled={!isEditing} />
               {isEditing ? (
                 <div className="flex justify-end space-x-2">
-                  <Button type="submit" className="bg-green-500 hover:bg-green-600">
-                    Save Changes
-                  </Button>
-                  <Button type="button" variant="outline" onClick={() => setIsEditing(false)}>
-                    Cancel
-                  </Button>
+                  <Button type="submit">Save Changes</Button>
+                  <Button variant="outline" onClick={() => setIsEditing(false)}>Cancel</Button>
                 </div>
               ) : (
-                <Button
-                  type="button"
-                  onClick={() => setIsEditing(true)}
-                  className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white"
-                >
-                  Edit Profile
-                </Button>
+                <Button onClick={() => setIsEditing(true)}>Edit Profile</Button>
               )}
             </form>
           </CardContent>
         </Card>
       </motion.div>
     </div>
-  )
+  );
 }
