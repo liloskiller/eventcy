@@ -15,4 +15,26 @@ model users {
   created_at    DateTime? @default(now()) @db.Timestamp(6)
   phone_number  String?   @default("+12345678") @db.VarChar(20)
   rank          String    @default("customer")
- }
+  tickets       Ticket[]
+}
+
+model Event {
+  id      String   @id @default(uuid())
+  name    String
+  date    DateTime
+  price   Int
+  tickets Ticket[]
+}
+
+model Ticket {
+  id        String    @id @default(uuid())
+  qrCode    String    @unique
+  userId    Int // ⚠ changed to Int to match users.id
+  eventId   String
+  scanned   Boolean   @default(false)
+  scannedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  user  users @relation(fields: [userId], references: [id])
+  event Event @relation(fields: [eventId], references: [id])
+}
