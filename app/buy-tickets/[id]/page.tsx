@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -11,7 +11,7 @@ import PaymentForm from '@/components/PaymentForm'
 import BackButton from '@/components/BackButton'
 
 interface Ticket {
-  id: number
+  id: string  
   name: string
   date: Date
   location: string
@@ -21,7 +21,7 @@ interface Ticket {
 
 const tickets: Ticket[] = [
   {
-    id: 1,
+    id: '1', 
     name: 'Summer Beach Party',
     date: new Date(2023, 6, 15),
     location: 'Nissi Beach, Ayia Napa',
@@ -29,7 +29,7 @@ const tickets: Ticket[] = [
     image: '/beach-club.jpg'
   },
   {
-    id: 2,
+    id: '2', 
     name: 'Foam Party Extravaganza',
     date: new Date(2023, 6, 22),
     location: 'Club Aqua, Limassol',
@@ -43,15 +43,15 @@ export default function TicketPurchasePage({ params }: { params: { id: string } 
   const [showQRCode, setShowQRCode] = useState(false)
   const router = useRouter()
 
-  useState(() => {
-    const ticketId = parseInt(params.id)
-    const foundTicket = tickets.find(t => t.id === ticketId)
+  useEffect(() => {
+    // Directly use `params.id` without parseInt since it's a UUID string
+    const foundTicket = tickets.find(t => t.id === params.id)
     if (foundTicket) {
       setTicket(foundTicket)
     } else {
       router.push('/buy-tickets')
     }
-  })
+  }, [params.id, router]) // Added `params.id` dependency to rerun effect if `id` changes
 
   const handlePaymentSuccess = () => {
     setShowQRCode(true)
@@ -114,4 +114,3 @@ export default function TicketPurchasePage({ params }: { params: { id: string } 
     </div>
   )
 }
-
