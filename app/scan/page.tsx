@@ -36,7 +36,7 @@ export default function ScanPage() {
         setTimeout(() => {
           setScanning(true);
           setLastScanned('');
-        }, 3000); // Resume after 3 seconds
+        }, 500); // Resume after 3 seconds
       } catch (err) {
         alert('Scan failed. Please try again.');
         setLastScanned(''); // Allow rescan on error
