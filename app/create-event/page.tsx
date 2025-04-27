@@ -1,7 +1,9 @@
+// app/create-event/page.tsx
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 import { motion } from 'framer-motion'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -12,34 +14,68 @@ import BackButton from '@/components/BackButton'
 
 export default function CreateEventPage() {
   const router = useRouter()
-  const [name, setName] = useState('')
-  const [date, setDate] = useState('')
-  const [location, setLocation] = useState('')
-  const [price, setPrice] = useState('')
-  const [maxTickets, setMaxTickets] = useState('')
-  const [seatingEnabled, setSeatingEnabled] = useState(false)
+  const { data: session, status } = useSession()
+  const [formData, setFormData] = useState({
+    name: '',
+    date: '',
+    location: '',
+    price: '',
+    maxTickets: '',
+    seatingEnabled: false,
+  })
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
-  const handleSubmit = async () => {
-    const res = await fetch('/api/events', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        name,
-        date,
-        location,
-        price: parseFloat(price),
-        maxTickets: parseInt(maxTickets),
-        seatingEnabled,
-      }),
-    })
-
-    if (res.ok) {
-      router.push('/buy-tickets')
-    } else {
-      alert('Failed to create event.')
+  // Redirect if not authenticated or not staff
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/auth/signin')
+    } else if (status === 'authenticated' && session?.user?.role !== 'STAFF') {
+      router.push('/')
     }
+  }, [status, session, router])
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value,
+    }))
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError('')
+
+    try {
+      const res = await fetch('/api/events', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      })
+
+      if (!res.ok) {
+        const errorData = await res.json()
+        throw new Error(errorData.error || 'Failed to create event')
+      }
+
+      router.push('/events')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An unknown error occurred')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
+        <div className="text-white">Loading...</div>
+      </div>
+    )
   }
 
   return (
@@ -54,28 +90,80 @@ export default function CreateEventPage() {
       >
         <Card className="dark:bg-gray-800 dark:text-white">
           <CardHeader>
-            <CardTitle className="text-2xl font-bold text-center">Create New Event</CardTitle>
+            <CardTitle className="text-2xl font-bold text-center">
+              Create New Event
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <Input placeholder="Event Name" value={name} onChange={(e) => setName(e.target.value)} />
-            <Input type="date" placeholder="Event Date" value={date} onChange={(e) => setDate(e.target.value)} />
-            <Input placeholder="Location" value={location} onChange={(e) => setLocation(e.target.value)} />
-            <Input type="number" placeholder="Price (€)" value={price} onChange={(e) => setPrice(e.target.value)} />
-            <Input type="number" placeholder="Max Tickets" value={maxTickets} onChange={(e) => setMaxTickets(e.target.value)} />
-            <div className="flex items-center space-x-4">
-              <span>Seating Enabled</span>
-              <Switch checked={seatingEnabled} onCheckedChange={setSeatingEnabled} />
-            </div>
+            {error && (
+              <p className="text-red-500 text-center">{error}</p>
+            )}
 
-            <Button
-              onClick={handleSubmit}
-              className="w-full bg-gradient-to-r from-pink-500 to-yellow-500 hover:from-pink-600 hover:to-yellow-600"
-            >
-              Publish Event
-            </Button>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <Input
+                name="name"
+                placeholder="Event Name"
+                value={formData.name}
+                onChange={handleChange}
+                required
+              />
+              <Input
+                type="date"
+                name="date"
+                placeholder="Event Date"
+                value={formData.date}
+                onChange={handleChange}
+                required
+              />
+              <Input
+                name="location"
+                placeholder="Location"
+                value={formData.location}
+                onChange={handleChange}
+                required
+              />
+              <Input
+                type="number"
+                name="price"
+                placeholder="Price (€)"
+                value={formData.price}
+                onChange={handleChange}
+                min="0"
+                step="0.01"
+                required
+              />
+              <Input
+                type="number"
+                name="maxTickets"
+                placeholder="Max Tickets"
+                value={formData.maxTickets}
+                onChange={handleChange}
+                min="1"
+                required
+              />
+              <div className="flex items-center space-x-4">
+                <span>Seating Enabled</span>
+                <Switch
+                  name="seatingEnabled"
+                  checked={formData.seatingEnabled}
+                  onCheckedChange={(checked) =>
+                    setFormData(prev => ({ ...prev, seatingEnabled: checked }))
+                  }
+                />
+              </div>
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-gradient-to-r from-pink-500 to-yellow-500 hover:from-pink-600 hover:to-yellow-600"
+              >
+                {loading ? 'Creating...' : 'Publish Event'}
+              </Button>
+            </form>
           </CardContent>
         </Card>
       </motion.div>
     </div>
   )
 }
+
+export const dynamic = 'force-dynamic'
