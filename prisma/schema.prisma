@@ -14,7 +14,7 @@ model users {
   password_hash String    @db.VarChar(255)
   created_at    DateTime? @default(now()) @db.Timestamp(6)
   phone_number  String?   @default("+12345678") @db.VarChar(20)
-  rank          String    @default("customer")
+  role          String    @default("customer")
   tickets       Ticket[]
 }
 
