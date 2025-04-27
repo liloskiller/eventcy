@@ -7,17 +7,8 @@ const SECRET_KEY = process.env.JWT_SECRET as string
 
 export async function POST(request: Request) {
   try {
-    const { email, password } = await request.json()
+    const { email, password_hash } = await request.json()
 
-    
-    if (!email || !password) {
-      return NextResponse.json(
-        { error: 'Email and password are required' },
-        { status: 400 }
-      )
-    }
-
-    // Find user
     const user = await prisma.users.findUnique({
       where: { email }
     })
@@ -29,8 +20,7 @@ export async function POST(request: Request) {
       )
     }
 
-    // Verify password
-    const validPassword = await bcrypt.compare(password, user.password_hash)
+    const validPassword = await bcrypt.compare(password_hash, user.password_hash)
     if (!validPassword) {
       return NextResponse.json(
         { error: 'Invalid credentials' },
@@ -38,7 +28,6 @@ export async function POST(request: Request) {
       )
     }
 
-    // Create token
     const token = jwt.sign(
       { userId: user.id.toString(), email: user.email },
       SECRET_KEY,

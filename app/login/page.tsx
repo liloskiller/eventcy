@@ -19,6 +19,13 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Simple client-side validation
+    if (!email || !password_hash) {
+      alert("Please fill in both fields")
+      return
+    }
+
     try {
       const response = await fetch("/api/auth/login", {
         method: "POST",
@@ -32,7 +39,6 @@ export default function LoginPage() {
         login(data.token)
         router.push("/home")
       } else {
-        console.error("Login failed:", data.error)
         alert(data.error || "Login failed")
       }
     } catch (error) {
@@ -66,7 +72,6 @@ export default function LoginPage() {
                   placeholder="Enter your email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-purple-50 dark:bg-purple-900/20"
                 />
               </div>
@@ -80,7 +85,6 @@ export default function LoginPage() {
                   placeholder="Enter your password"
                   value={password_hash}
                   onChange={(e) => setPassword(e.target.value)}
-                  required
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-purple-50 dark:bg-purple-900/20"
                 />
               </div>
