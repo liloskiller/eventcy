@@ -18,7 +18,8 @@ export async function GET(
         maxTickets: true,
         seatingEnabled: true,
         createdAt: true,
-        updatedAt: true
+        updatedAt: true, 
+        image: true
       }
     })
 
