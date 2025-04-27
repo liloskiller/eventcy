@@ -1,45 +1,47 @@
+// app/api/events/route.ts
 import { NextResponse } from 'next/server'
 import prisma from '@/lib/prisma'
-import { auth } from '@/lib/auth'
+import jwt from 'jsonwebtoken'
 
-export async function POST(req: Request) {
+const SECRET_KEY = process.env.JWT_SECRET as string
+
+export async function POST(request: Request) {
   try {
-    const { user } = await auth()
+    const authorization = request.headers.get("Authorization")
+    if (!authorization || !authorization.startsWith("Bearer ")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+    
+    const token = authorization.split(" ")[1]
+    const decoded = jwt.verify(token, SECRET_KEY) as { userId: string; email: string }
 
-    if (!user || user.role !== 'STAFF') {
-      return NextResponse.json(
-        { error: 'Unauthorized: Staff access required' },
-        { status: 403 }
-      )
+    const user = await prisma.users.findUnique({
+      where: { id: parseInt(decoded.userId) },
+      select: { role: true }
+    })
+
+    if (!user || user.role !== 'staff') {
+      return NextResponse.json({ error: "Forbidden: Staff only" }, { status: 403 })
     }
 
-    const data = await req.json()
-
-    // Validate input data
-    if (!data.name || !data.date || !data.location || !data.price || !data.maxTickets) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      )
-    }
-
+    const data = await request.json()
     const event = await prisma.event.create({
       data: {
         name: data.name,
         date: new Date(data.date),
         location: data.location,
-        price: parseFloat(data.price),
-        maxTickets: parseInt(data.maxTickets),
-        seatingEnabled: Boolean(data.seatingEnabled),
+        price: data.price,
+        maxTickets: data.maxTickets,
+        seatingEnabled: data.seatingEnabled,
       },
     })
 
     return NextResponse.json(event, { status: 201 })
   } catch (error) {
-    console.error('Error creating event:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    if (error instanceof jwt.JsonWebTokenError) {
+      return NextResponse.json({ error: "Invalid token" }, { status: 401 })
+    }
+    console.error(error)
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }
