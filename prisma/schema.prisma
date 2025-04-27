@@ -19,22 +19,26 @@ model users {
 }
 
 model Event {
-  id      String   @id @default(uuid())
-  name    String
-  date    DateTime
-  price   Int
-  tickets Ticket[]
+  id             String   @id @default(uuid())
+  name           String
+  date           DateTime
+  location       String
+  price          Float
+  image          String?
+  maxTickets     Int
+  seatingEnabled Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  tickets        Ticket[]
 }
 
 model Ticket {
   id        String    @id @default(uuid())
   qrCode    String    @unique
-  userId    Int // ⚠ changed to Int to match users.id
+  userId    Int
   eventId   String
   scanned   Boolean   @default(false)
   scannedAt DateTime?
   createdAt DateTime  @default(now())
-
-  user  users @relation(fields: [userId], references: [id])
-  event Event @relation(fields: [eventId], references: [id])
+  event     Event     @relation(fields: [eventId], references: [id])
+  user      users     @relation(fields: [userId], references: [id])
 }

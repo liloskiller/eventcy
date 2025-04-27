@@ -21,7 +21,7 @@ interface Ticket {
 
 const tickets: Ticket[] = [
   {
-    id: '1', 
+    id: '86e8cb42-b2da-4086-9434-f4bcd9eb808a', 
     name: 'Summer Beach Party',
     date: new Date(2023, 6, 15),
     location: 'Nissi Beach, Ayia Napa',
@@ -29,7 +29,7 @@ const tickets: Ticket[] = [
     image: '/beach-club.jpg'
   },
   {
-    id: '2', 
+    id: 'f93a5c76-48e8-4d3b-a9a2-4b6a658bbd45', 
     name: 'Foam Party Extravaganza',
     date: new Date(2023, 6, 22),
     location: 'Club Aqua, Limassol',
