@@ -1,39 +1,56 @@
-'use client'
+import { NextResponse } from 'next/server'
+import jwt from 'jsonwebtoken'
+import prisma from '@/lib/prisma'
+import bcrypt from 'bcryptjs'
 
-import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
-import bcrypt from "bcryptjs"; 
-import jwt from "jsonwebtoken";
-
-const SECRET_KEY = process.env.JWT_SECRET as string;
+const SECRET_KEY = process.env.JWT_SECRET as string
 
 export async function POST(request: Request) {
   try {
-    const { email, password_hash } = await request.json();
+    const { email, password } = await request.json()
 
-    // Find user by email
+    
+    if (!email || !password) {
+      return NextResponse.json(
+        { error: 'Email and password are required' },
+        { status: 400 }
+      )
+    }
+
+    // Find user
     const user = await prisma.users.findUnique({
-      where: { email },
-    });
+      where: { email }
+    })
 
     if (!user) {
-      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+      return NextResponse.json(
+        { error: 'Invalid credentials' },
+        { status: 401 }
+      )
     }
 
-    // Compare the provided password with the stored hashed password
-    const isMatch = await bcrypt.compare(password_hash, user.password_hash);
-
-    if (!isMatch) {
-      return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+    // Verify password
+    const validPassword = await bcrypt.compare(password, user.password_hash)
+    if (!validPassword) {
+      return NextResponse.json(
+        { error: 'Invalid credentials' },
+        { status: 401 }
+      )
     }
 
-      // Generate JWT token
-        const token = jwt.sign({ userId: user.id, email: user.email }, SECRET_KEY, {
-        expiresIn: "7d", 
-    });
+    // Create token
+    const token = jwt.sign(
+      { userId: user.id.toString(), email: user.email },
+      SECRET_KEY,
+      { expiresIn: '1d' }
+    )
 
-    return NextResponse.json({ message: "Login successful",token, user });
+    return NextResponse.json({ token }, { status: 200 })
   } catch (error) {
-    return NextResponse.json({ error: "Error logging in" }, { status: 500 });
+    console.error('Login error:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
   }
 }

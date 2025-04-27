@@ -52,7 +52,7 @@ export default function CreateEventPage() {
         throw new Error(errorData.error || 'Failed to create event')
       }
   
-      router.push('/events')
+      router.push('/buy-tickets')
     } catch (err) {
       // Proper error type checking
       if (err instanceof Error) {

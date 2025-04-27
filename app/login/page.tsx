@@ -1,10 +1,8 @@
 "use client"
 
-import type React from "react"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/context/AuthContext"
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
@@ -13,34 +11,46 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import BackButton from "@/components/BackButton"
 
-
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password_hash, setPassword] = useState("")
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(false)
   const router = useRouter()
-  const { login } = useAuth();
+  const { login } = useAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setLoading(true)
+    setError(null)
+
     try {
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password_hash }), // Send password_hash instead of password
-      });
-    console.log("Login attempted with:", email, password_hash)
-    const data = await response.json();
+        body: JSON.stringify({ email, password_hash }),
+      })
 
-      if (response.ok) {
-        console.log("Login successful:", data);
-        
-        login(data.token);
-        router.push("/home"); // Redirect after login
-      } else {
-        alert(data.error || "Login failed");
+      // First check if response is OK
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: "Login failed" }))
+        throw new Error(errorData.error || "Login failed")
       }
-    } catch (error) {
-      console.error("Login error:", error);
+
+      // Then parse the successful response
+      const data = await response.json()
+      
+      if (!data.token) {
+        throw new Error("No authentication token received")
+      }
+
+      login(data.token)
+      router.push("/home")
+    } catch (err) {
+      console.error("Login error:", err)
+      setError(err instanceof Error ? err.message : "An unexpected error occurred")
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -58,6 +68,11 @@ export default function LoginPage() {
             <CardTitle className="text-3xl font-bold text-center text-purple-700">Login</CardTitle>
           </CardHeader>
           <CardContent className="bg-white rounded-b-lg pt-6">
+            {error && (
+              <div className="mb-4 p-3 bg-red-100 text-red-700 rounded-md text-center">
+                {error}
+              </div>
+            )}
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium text-gray-700">
@@ -89,9 +104,10 @@ export default function LoginPage() {
               </div>
               <Button
                 type="submit"
-                className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white font-bold py-3 rounded-md transition duration-300 ease-in-out transform hover:scale-105"
+                disabled={loading}
+                className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white font-bold py-3 rounded-md transition duration-300 ease-in-out transform hover:scale-105 disabled:opacity-70"
               >
-                Login
+                {loading ? "Logging in..." : "Login"}
               </Button>
             </form>
             <div className="mt-6 text-center">
@@ -108,4 +124,3 @@ export default function LoginPage() {
     </div>
   )
 }
-
