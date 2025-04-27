@@ -5,7 +5,7 @@ import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import Link from 'next/link';
+import Link from 'next/link'
 import BackButton from '@/components/BackButton'
 
 type Event = {
@@ -13,27 +13,44 @@ type Event = {
   name: string
   date: string
   location: string
-  price?: number
+  price: number
+  maxTickets: number
+  ticketsSold: number
+  seatingEnabled: boolean
 }
-  
-
-/*const tickets = [
-  { id: 1, name: 'Summer Beach Party', date: new Date(2023, 6, 15), price: 25, location: 'Nissi Beach, Ayia Napa' },
-  { id: 2, name: 'Foam Party Extravaganza', date: new Date(2023, 6, 22), price: 30, location: 'Club Aqua, Limassol' },
-  { id: 3, name: 'Techno Night', date: new Date(2023, 7, 5), price: 20, location: 'Versus Club, Nicosia' },
-  { id: 4, name: 'Retro Disco Fever', date: new Date(2023, 7, 12), price: 15, location: 'Time Machine, Larnaca' },
-  { id: 5, name: 'Sunset DJ Set', date: new Date(2023, 7, 19), price: 35, location: 'Guaba Beach Bar, Limassol' },
-  { id: 6, name: 'Rock Night', date: new Date(2023, 7, 26), price: 18, location: 'Ravens, Paphos' },
-]*/
 
 export default function BuyTickets() {
   const [events, setEvents] = useState<Event[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    fetch('/api/events')
-      .then(res => res.json())
-      .then(setEvents)
+    const fetchEvents = async () => {
+      try {
+        const response = await fetch('/api/events')
+        if (!response.ok) {
+          throw new Error('Failed to fetch events')
+        }
+        const data = await response.json()
+        // Calculate tickets remaining
+        const eventsWithAvailability = data.map((event: any) => ({
+          ...event,
+          ticketsSold: 0, // You'll need to implement this from your database
+          ticketsRemaining: event.maxTickets // - actual sold tickets
+        }))
+        setEvents(eventsWithAvailability)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Unknown error')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchEvents()
   }, [])
+
+  // ... rest of your component remains the same
+  // Just update the display to show ticketsRemaining
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-600 to-blue-600 p-6 font-sans">
       <BackButton />

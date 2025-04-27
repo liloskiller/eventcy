@@ -9,56 +9,91 @@ import DarkModeToggle from '@/components/DarkModeToggle'
 import QRCodeGenerator from '@/components/QRCodeGenerator'
 import PaymentForm from '@/components/PaymentForm'
 import BackButton from '@/components/BackButton'
+import { useAuth } from '@/context/AuthContext'
 
-interface Ticket {
-  id: string  
+interface Event {
+  id: string
   name: string
-  date: Date
+  date: string
   location: string
   price: number
-  image: string
+  image?: string
+  maxTickets: number
+  seatingEnabled: boolean
 }
 
-const tickets: Ticket[] = [
-  {
-    id: '86e8cb42-b2da-4086-9434-f4bcd9eb808a', 
-    name: 'Summer Beach Party',
-    date: new Date(2023, 6, 15),
-    location: 'Nissi Beach, Ayia Napa',
-    price: 30,
-    image: '/beach-club.jpg'
-  },
-  {
-    id: 'f93a5c76-48e8-4d3b-a9a2-4b6a658bbd45', 
-    name: 'Foam Party Extravaganza',
-    date: new Date(2023, 6, 22),
-    location: 'Club Aqua, Limassol',
-    price: 25,
-    image: '/foam-party.jpg'
-  },
-]
-
 export default function TicketPurchasePage({ params }: { params: { id: string } }) {
-  const [ticket, setTicket] = useState<Ticket | null>(null)
+  const [event, setEvent] = useState<Event | null>(null)
   const [showQRCode, setShowQRCode] = useState(false)
+  const [ticketData, setTicketData] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const router = useRouter()
+  const { user } = useAuth()
 
   useEffect(() => {
-    // Directly use `params.id` without parseInt since it's a UUID string
-    const foundTicket = tickets.find(t => t.id === params.id)
-    if (foundTicket) {
-      setTicket(foundTicket)
-    } else {
-      router.push('/buy-tickets')
+    const fetchEvent = async () => {
+      try {
+        const response = await fetch(`/api/events/${params.id}`)
+        if (!response.ok) {
+          throw new Error('Event not found')
+        }
+        const data = await response.json()
+        setEvent(data)
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Unknown error')
+        router.push('/buy-tickets')
+      } finally {
+        setLoading(false)
+      }
     }
-  }, [params.id, router]) // Added `params.id` dependency to rerun effect if `id` changes
 
-  const handlePaymentSuccess = () => {
-    setShowQRCode(true)
+    fetchEvent()
+  }, [params.id, router])
+
+  const handlePaymentSuccess = async () => {
+    try {
+      if (!user || !event) return
+
+      // Create ticket in database
+      const response = await fetch('/api/tickets', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
+        },
+        body: JSON.stringify({
+          eventId: event.id,
+          userId: user.userId
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to create ticket')
+      }
+
+      const ticket = await response.json()
+      setTicketData(ticket)
+      setShowQRCode(true)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to generate ticket')
+    }
   }
 
-  if (!ticket) {
-    return <div>Loading...</div>
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
+        <div className="text-white">Loading event details...</div>
+      </div>
+    )
+  }
+
+  if (error || !event) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
+        <div className="text-white bg-red-500 p-4 rounded">{error || 'Event not found'}</div>
+      </div>
+    )
   }
 
   return (
@@ -78,23 +113,38 @@ export default function TicketPurchasePage({ params }: { params: { id: string } 
           <CardContent className="space-y-6">
             <div className="relative h-48 sm:h-64 w-full">
               <Image
-                src={ticket.image || "/placeholder.svg"}
-                alt={ticket.name}
+                src={event.image || "/placeholder.svg"}
+                alt={event.name}
                 layout="fill"
                 objectFit="cover"
                 className="rounded-lg"
               />
             </div>
             <div className="space-y-2">
-              <h3 className="text-xl font-semibold">{ticket.name}</h3>
-              <p className="text-gray-600 dark:text-gray-300">{ticket.date.toDateString()}</p>
-              <p className="text-gray-600 dark:text-gray-300">{ticket.location}</p>
-              <p className="text-xl font-bold">Price: €{ticket.price}</p>
+              <h3 className="text-xl font-semibold">{event.name}</h3>
+              <p className="text-gray-600 dark:text-gray-300">
+                {new Date(event.date).toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
+              </p>
+              <p className="text-gray-600 dark:text-gray-300">{event.location}</p>
+              <p className="text-xl font-bold">Price: €{event.price}</p>
+              <p className="text-gray-600 dark:text-gray-300">
+                Seating: {event.seatingEnabled ? 'Reserved' : 'General Admission'}
+              </p>
             </div>
             
             <AnimatePresence mode="wait">
               {!showQRCode ? (
-                <PaymentForm amount={ticket.price} onSuccess={handlePaymentSuccess} />
+                <PaymentForm 
+                  amount={event.price} 
+                  onSuccess={handlePaymentSuccess} 
+                />
               ) : (
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -103,8 +153,13 @@ export default function TicketPurchasePage({ params }: { params: { id: string } 
                   className="space-y-4"
                 >
                   <h3 className="text-lg font-semibold">Your Ticket QR Code</h3>
-                  <QRCodeGenerator data={`Ticket: ${ticket.name}, Date: ${ticket.date.toDateString()}, Price: €${ticket.price}`} />
-                  <p className="text-sm">Please show this QR code at the entrance. You can also find this in your email.</p>
+                  {ticketData && (
+                    <QRCodeGenerator 
+                      data={ticketData.qrCode}
+                    />
+                  )}
+                  <p className="text-sm">Please show this QR code at the entrance.</p>
+                  <p className="text-sm text-gray-500">Ticket ID: {ticketData?.id}</p>
                 </motion.div>
               )}
             </AnimatePresence>
