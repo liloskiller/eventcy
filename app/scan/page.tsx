@@ -11,32 +11,32 @@ export default function ScanPage() {
   const [message, setMessage] = useState('');
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const scannerContainerRef = useRef<HTMLDivElement>(null);
-  const beepSuccessRef = useRef<HTMLAudioElement | null>(null);
-  const beepErrorRef = useRef<HTMLAudioElement | null>(null);
+  const lastScannedCode = useRef<string | null>(null);
+  const cooldownTimer = useRef<NodeJS.Timeout | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
 
-  // Initialize sounds
   useEffect(() => {
-    beepSuccessRef.current = new Audio('/sounds/beep-success.mp3');
-    beepErrorRef.current = new Audio('/sounds/beep-error.mp3');
+    // @ts-ignore - Safari requires this legacy constructor
+    audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
     
     return () => {
-      [beepSuccessRef.current, beepErrorRef.current].forEach(audio => {
-        if (audio) {
-          audio.pause();
-          audio.remove();
-        }
-      });
+      if (cooldownTimer.current) {
+        clearTimeout(cooldownTimer.current);
+      }
+      if (scannerRef.current?.isScanning) {
+        scannerRef.current.stop().catch(console.error);
+      }
     };
   }, []);
 
-  // Initialize scanner
   useEffect(() => {
     if (!scannerContainerRef.current) return;
 
     const config = {
-      fps: 15,
-      qrbox: { width: 250, height: 250 },
-      rememberLastUsedCamera: true
+      fps: 10, 
+      qrbox: { width: 200, height: 200 },
+      rememberLastUsedCamera: true,
+      disableFlip: true 
     };
 
     const scanner = new Html5Qrcode(scannerContainerRef.current.id);
@@ -48,28 +48,26 @@ export default function ScanPage() {
         let backCamera = cameras.find(cam => 
           cam.label.toLowerCase().includes('back') || 
           cam.label.toLowerCase().includes('rear')
-        );
-        
-        // Fallback to first camera if no back camera found
-        if (!backCamera && cameras.length > 0) {
-          backCamera = cameras[0];
-        }
+        ) || cameras[0];
 
-        if (!backCamera) {
-          throw new Error('No camera found');
-        }
+        if (!backCamera) throw new Error('No camera found');
 
         await scanner.start(
           backCamera.id,
           config,
-          (decodedText) => onScanSuccess(decodedText),
-          (error) => onScanError(error)
+          (decodedText) => {
+            if (scanStatus !== 'ready' || (lastScannedCode.current === decodedText)) return;
+            
+            lastScannedCode.current = decodedText;
+            handleScanSuccess(decodedText);
+          },
+          (error) => console.warn('Scan error:', error)
         );
         
         setScanStatus('ready');
       } catch (err) {
-        console.error('Camera init error:', err);
-        setMessage('Could not access camera. Please ensure permissions are granted.');
+        console.error('Camera error:', err);
+        setMessage('Camera access required. Please enable permissions.');
         setScanStatus('error');
       }
     };
@@ -77,15 +75,13 @@ export default function ScanPage() {
     startScanner();
 
     return () => {
-      if (scannerRef.current && scannerRef.current.isScanning) {
+      if (scannerRef.current?.isScanning) {
         scannerRef.current.stop().catch(console.error);
       }
     };
-  }, []);
+  }, [scanStatus]);
 
-  const onScanSuccess = async (decodedText: string) => {
-    if (scanStatus !== 'ready') return;
-    
+  const handleScanSuccess = async (decodedText: string) => {
     setScanStatus('scanning');
     
     try {
@@ -93,35 +89,43 @@ export default function ScanPage() {
       const data = await res.json();
       
       if (res.ok) {
-        playSound(true);
+        playBeep(800, 200); 
         setMessage(data.message || 'Ticket validated!');
         setScanStatus('success');
       } else {
         throw new Error(data.message || 'Invalid ticket');
       }
     } catch (err) {
-      playSound(false);
+      playBeep(200, 500); 
       setMessage(err instanceof Error ? err.message : 'Scan failed');
       setScanStatus('error');
     }
     
-    // Auto-reset after delay
-    setTimeout(() => {
+    cooldownTimer.current = setTimeout(() => {
+      lastScannedCode.current = null;
       setScanStatus('ready');
       setMessage('');
-    }, 2000);
+    }, 500);
   };
 
-  const onScanError = (error: string) => {
-    console.warn('Scan error:', error);
-  };
-
-  const playSound = (success: boolean) => {
-    const audio = success ? beepSuccessRef.current : beepErrorRef.current;
-    if (audio) {
-      audio.currentTime = 0;
-      audio.play().catch(e => console.warn('Audio play failed:', e));
-    }
+  // Web Audio API solution for iOS
+  const playBeep = (frequency: number, duration: number) => {
+    if (!audioContextRef.current) return;
+    
+    const oscillator = audioContextRef.current.createOscillator();
+    const gainNode = audioContextRef.current.createGain();
+    
+    oscillator.type = 'sine';
+    oscillator.frequency.value = frequency;
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContextRef.current.destination);
+    
+    gainNode.gain.setValueAtTime(0, audioContextRef.current.currentTime);
+    gainNode.gain.linearRampToValueAtTime(1, audioContextRef.current.currentTime + 0.01);
+    
+    oscillator.start();
+    gainNode.gain.exponentialRampToValueAtTime(0.001, audioContextRef.current.currentTime + duration/1000);
+    oscillator.stop(audioContextRef.current.currentTime + duration/1000);
   };
 
   return (
@@ -142,8 +146,16 @@ export default function ScanPage() {
               className="w-full aspect-square bg-black relative"
             />
             
+            {/* Scanner overlay with cooldown indicator */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div className="border-4 border-blue-400 rounded-lg w-64 h-64 relative">
+                {scanStatus !== 'ready' && (
+                  <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                    <div className="text-white font-bold text-lg">
+                      {scanStatus === 'scanning' ? 'Processing...' : ''}
+                    </div>
+                  </div>
+                )}
                 <div className="absolute -top-1 -left-1 w-8 h-8 border-t-4 border-l-4 border-blue-400"></div>
                 <div className="absolute -top-1 -right-1 w-8 h-8 border-t-4 border-r-4 border-blue-400"></div>
                 <div className="absolute -bottom-1 -left-1 w-8 h-8 border-b-4 border-l-4 border-blue-400"></div>
@@ -153,41 +165,32 @@ export default function ScanPage() {
           </div>
 
           <div className="p-4 bg-gray-50 border-t">
-            {scanStatus === 'ready' && (
-              <p className="text-center text-gray-600">Scan ticket QR code</p>
-            )}
-            
-            {scanStatus === 'scanning' && (
-              <div className="flex items-center justify-center space-x-2">
-                <div className="w-4 h-4 rounded-full bg-blue-400 animate-pulse"></div>
-                <span>Processing...</span>
-              </div>
-            )}
-            
-            {scanStatus === 'success' && (
+            {scanStatus === 'success' ? (
               <div className="flex items-center justify-center space-x-2 text-green-600">
                 <FaCheckCircle className="text-xl" />
                 <span>{message}</span>
               </div>
-            )}
-            
-            {scanStatus === 'error' && (
+            ) : scanStatus === 'error' ? (
               <div className="flex items-center justify-center space-x-2 text-red-600">
                 <FaTimesCircle className="text-xl" />
                 <span>{message}</span>
               </div>
+            ) : (
+              <p className="text-center text-gray-600">
+                {scanStatus === 'scanning' ? 'Processing ticket...' : 'Scan ticket QR code'}
+              </p>
             )}
           </div>
         </div>
 
         <div className="mt-8 text-center text-gray-500 text-sm">
           <p>Point camera at ticket QR code</p>
-          <p className="mt-1">Ensure good lighting and clear view</p>
+          <p className="mt-1">Hold steady for 1 second after scan</p>
         </div>
       </main>
 
       <footer className="bg-blue-600 text-white p-4 text-center text-sm">
-        Event Management System © {new Date().getFullYear()}
+        EventCy.Live © {new Date().getFullYear()}
       </footer>
     </div>
   );
