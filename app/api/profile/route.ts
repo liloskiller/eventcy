@@ -4,10 +4,10 @@ import jwt from "jsonwebtoken";
 
 const SECRET_KEY = process.env.JWT_SECRET as string;
 
-// GET handler for fetching the profile
+
 export async function GET(request: Request) {
   try {
-    // Get the token from the Authorization header
+    
     const authorization = request.headers.get("Authorization");
     
     if (!authorization || !authorization.startsWith("Bearer ")) {
@@ -16,10 +16,10 @@ export async function GET(request: Request) {
     
     const token = authorization.split(" ")[1];
     
-    // Verify the token
+    
     const decoded = jwt.verify(token, SECRET_KEY) as { userId: string; email: string };
     
-    // Get user data from database
+    
     const user = await prisma.users.findUnique({
       where: { id: parseInt(decoded.userId) },
       select: {
@@ -27,7 +27,6 @@ export async function GET(request: Request) {
         name: true,
         email: true,
         phone_number: true,
-        // Don't include password_hash in the response
       }
     });
     
@@ -45,10 +44,8 @@ export async function GET(request: Request) {
   }
 }
 
-// PUT handler for updating the profile
 export async function PUT(request: Request) {
   try {
-    // Get the token from the Authorization header
     const authorization = request.headers.get("Authorization");
     
     if (!authorization || !authorization.startsWith("Bearer ")) {
@@ -57,13 +54,13 @@ export async function PUT(request: Request) {
     
     const token = authorization.split(" ")[1];
     
-    // Verify the token
+    
     const decoded = jwt.verify(token, SECRET_KEY) as { userId: string; email: string };
     
-    // Get the updated user data from the request body
+    
     const { name, email, phone_number } = await request.json();
     
-    // Update the user in the database
+    
     await prisma.users.update({
       where: { id: parseInt(decoded.userId) },
       data: {

@@ -1,4 +1,3 @@
-// app/create-event/page.tsx
 'use client'
 
 import { useState } from 'react'
@@ -23,22 +22,26 @@ export default function CreateEventPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
+  const handleChange = (field: keyof typeof formData, value: string | boolean) => {
+    setFormData(prev => ({ ...prev, [field]: value }))
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
     setError('')
-  
+    setLoading(true)
+
     try {
       const token = localStorage.getItem('authToken')
       if (!token) {
         throw new Error('Not authenticated')
       }
-  
-      const res = await fetch('/api/events', {
+
+      const response = await fetch('/api/events', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
           ...formData,
@@ -46,22 +49,19 @@ export default function CreateEventPage() {
           maxTickets: parseInt(formData.maxTickets),
         }),
       })
-  
-      if (!res.ok) {
-        const errorData = await res.json()
-        throw new Error(errorData.error || 'Failed to create event')
+
+      if (!response.ok) {
+        const { error } = await response.json()
+        throw new Error(error || 'Failed to create event')
       }
-  
+
       router.push('/buy-tickets')
     } catch (err) {
-      // Proper error type checking
       if (err instanceof Error) {
         setError(err.message)
-        if (err.message.includes('authenticated') || err.message.includes('token')) {
+        if (err.message.includes('authenticated')) {
           router.push('/login')
         }
-      } else if (typeof err === 'string') {
-        setError(err)
       } else {
         setError('An unknown error occurred')
       }
@@ -87,47 +87,42 @@ export default function CreateEventPage() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {error && <p className="text-red-500 text-center">{error}</p>}
-          
+          {error && <p className="text-center text-red-500">{error}</p>}
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
-              name="name"
               placeholder="Event Name"
               value={formData.name}
-              onChange={(e) => setFormData({...formData, name: e.target.value})}
+              onChange={(e) => handleChange('name', e.target.value)}
               required
             />
             <Input
               type="date"
-              name="date"
               placeholder="Event Date"
               value={formData.date}
-              onChange={(e) => setFormData({...formData, date: e.target.value})}
+              onChange={(e) => handleChange('date', e.target.value)}
               required
             />
             <Input
-              name="location"
               placeholder="Location"
               value={formData.location}
-              onChange={(e) => setFormData({...formData, location: e.target.value})}
+              onChange={(e) => handleChange('location', e.target.value)}
               required
             />
             <Input
               type="number"
-              name="price"
               placeholder="Price (€)"
               value={formData.price}
-              onChange={(e) => setFormData({...formData, price: e.target.value})}
+              onChange={(e) => handleChange('price', e.target.value)}
               min="0"
               step="0.01"
               required
             />
             <Input
               type="number"
-              name="maxTickets"
               placeholder="Max Tickets"
               value={formData.maxTickets}
-              onChange={(e) => setFormData({...formData, maxTickets: e.target.value})}
+              onChange={(e) => handleChange('maxTickets', e.target.value)}
               min="1"
               required
             />
@@ -135,9 +130,7 @@ export default function CreateEventPage() {
               <span>Seating Enabled</span>
               <Switch
                 checked={formData.seatingEnabled}
-                onCheckedChange={(checked) =>
-                  setFormData({...formData, seatingEnabled: checked})
-                }
+                onCheckedChange={(checked) => handleChange('seatingEnabled', checked)}
               />
             </div>
             <Button
