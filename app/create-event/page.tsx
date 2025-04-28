@@ -22,14 +22,10 @@ export default function CreateEventPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const handleChange = (field: keyof typeof formData, value: string | boolean) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError('')
     setLoading(true)
+    setError('')
 
     try {
       const token = localStorage.getItem('authToken')
@@ -37,11 +33,11 @@ export default function CreateEventPage() {
         throw new Error('Not authenticated')
       }
 
-      const response = await fetch('/api/events', {
+      const res = await fetch('/api/events', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           ...formData,
@@ -50,18 +46,20 @@ export default function CreateEventPage() {
         }),
       })
 
-      if (!response.ok) {
-        const { error } = await response.json()
-        throw new Error(error || 'Failed to create event')
+      if (!res.ok) {
+        const errorData = await res.json()
+        throw new Error(errorData.error || 'Failed to create event')
       }
 
       router.push('/buy-tickets')
     } catch (err) {
       if (err instanceof Error) {
         setError(err.message)
-        if (err.message.includes('authenticated')) {
+        if (err.message.includes('authenticated') || err.message.includes('token')) {
           router.push('/login')
         }
+      } else if (typeof err === 'string') {
+        setError(err)
       } else {
         setError('An unknown error occurred')
       }
@@ -72,71 +70,99 @@ export default function CreateEventPage() {
 
   if (!user) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <p>Loading authentication...</p>
+      <div className="flex justify-center items-center h-screen bg-gray-50">
+        <p className="text-gray-800">Loading authentication...</p>
       </div>
     )
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <Card className="max-w-2xl mx-auto">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <Card className="w-full max-w-2xl bg-white shadow-md rounded-2xl p-6">
+        <CardHeader className="text-center">
+          <CardTitle className="text-3xl font-bold text-gray-800">
             Create New Event
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {error && <p className="text-center text-red-500">{error}</p>}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <Input
-              placeholder="Event Name"
-              value={formData.name}
-              onChange={(e) => handleChange('name', e.target.value)}
-              required
-            />
-            <Input
-              type="date"
-              placeholder="Event Date"
-              value={formData.date}
-              onChange={(e) => handleChange('date', e.target.value)}
-              required
-            />
-            <Input
-              placeholder="Location"
-              value={formData.location}
-              onChange={(e) => handleChange('location', e.target.value)}
-              required
-            />
-            <Input
-              type="number"
-              placeholder="Price (€)"
-              value={formData.price}
-              onChange={(e) => handleChange('price', e.target.value)}
-              min="0"
-              step="0.01"
-              required
-            />
-            <Input
-              type="number"
-              placeholder="Max Tickets"
-              value={formData.maxTickets}
-              onChange={(e) => handleChange('maxTickets', e.target.value)}
-              min="1"
-              required
-            />
-            <div className="flex items-center space-x-4">
-              <span>Seating Enabled</span>
-              <Switch
-                checked={formData.seatingEnabled}
-                onCheckedChange={(checked) => handleChange('seatingEnabled', checked)}
+        <CardContent className="space-y-6 mt-4">
+          {error && <p className="text-red-500 text-center">{error}</p>}
+
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <Input
+                name="name"
+                placeholder="Event Name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="border-gray-300 focus:border-indigo-600 focus:ring-indigo-600 text-gray-800"
+                required
               />
             </div>
+
+            <div>
+              <Input
+                type="date"
+                name="date"
+                placeholder="Event Date"
+                value={formData.date}
+                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                className="border-gray-300 focus:border-indigo-600 focus:ring-indigo-600 text-gray-800"
+                required
+              />
+            </div>
+
+            <div>
+              <Input
+                name="location"
+                placeholder="Location"
+                value={formData.location}
+                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                className="border-gray-300 focus:border-indigo-600 focus:ring-indigo-600 text-gray-800"
+                required
+              />
+            </div>
+
+            <div>
+              <Input
+                type="number"
+                name="price"
+                placeholder="Price (€)"
+                value={formData.price}
+                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                className="border-gray-300 focus:border-indigo-600 focus:ring-indigo-600 text-gray-800"
+                min="0"
+                step="0.01"
+                required
+              />
+            </div>
+
+            <div>
+              <Input
+                type="number"
+                name="maxTickets"
+                placeholder="Max Tickets"
+                value={formData.maxTickets}
+                onChange={(e) => setFormData({ ...formData, maxTickets: e.target.value })}
+                className="border-gray-300 focus:border-indigo-600 focus:ring-indigo-600 text-gray-800"
+                min="1"
+                required
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <span className="text-gray-800 font-medium">Seating Enabled</span>
+              <Switch
+                checked={formData.seatingEnabled}
+                onCheckedChange={(checked) => setFormData({ ...formData, seatingEnabled: checked })}
+                className="data-[state=checked]:bg-indigo-600"
+              />
+            </div>
+
             <Button
               type="submit"
               disabled={loading}
-              className="w-full"
+              className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 rounded-xl transition"
             >
               {loading ? 'Creating...' : 'Publish Event'}
             </Button>
