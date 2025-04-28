@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { BackToMain }  from "@/components/BackButton"
+import { Loader2 } from "lucide-react"
 
 export default function CreateEventPage() {
   const { user } = useAuth()
@@ -71,8 +72,8 @@ export default function CreateEventPage() {
 
   if (!user) {
     return (
-      <div className="flex justify-center items-center h-screen bg-indigo-50">
-        <p className="text-gray-800">Loading authentication...</p>
+      <div className="min-h-screen bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-white" />
       </div>
     )
   }
