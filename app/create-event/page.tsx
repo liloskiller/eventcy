@@ -70,15 +70,15 @@ export default function CreateEventPage() {
 
   if (!user) {
     return (
-      <div className="flex justify-center items-center h-screen bg-gray-50">
+      <div className="flex justify-center items-center h-screen bg-indigo-50">
         <p className="text-gray-800">Loading authentication...</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <Card className="w-full max-w-2xl bg-white shadow-md rounded-2xl p-6">
+    <div className="min-h-screen bg-indigo-50 flex items-center justify-center p-6">
+      <Card className="w-full max-w-2xl bg-white shadow-lg rounded-2xl p-6">
         <CardHeader className="text-center">
           <CardTitle className="text-3xl font-bold text-gray-800">
             Create New Event
