@@ -105,10 +105,9 @@ export default function ScanPage() {
       lastScannedCode.current = null;
       setScanStatus('ready');
       setMessage('');
-    }, 500);
+    }, 350);
   };
 
-  // Web Audio API solution for iOS
   const playBeep = (frequency: number, duration: number) => {
     if (!audioContextRef.current) return;
     
