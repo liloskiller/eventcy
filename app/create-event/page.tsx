@@ -78,8 +78,8 @@ export default function CreateEventPage() {
   }
 
   return (
-    
-    <div className="min-h-screen bg-gradient-to-br from-purple-600 to-blue-600 p-4 sm:p-6 font-sans">
+    //<div className="min-h-screen bg-gradient-to-br from-purple-600 to-blue-600 p-4 sm:p-6 font-sans"></div>
+    <div className="min-h-screen bg-gradient-to-br from-purple-600 to-blue-600 font-sans">
       <BackToMain />
       <Card className="w-full max-w-2xl bg-white shadow-lg rounded-2xl p-6">
         <CardHeader className="text-center">

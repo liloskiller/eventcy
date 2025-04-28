@@ -47,7 +47,7 @@ export  function BackToMain() {
       }}
     >
       <ArrowLeft className="w-5 h-5" />
-      <span className="pr-1">Back</span>
+      <span className="pr-1">Back!</span>
     </motion.button>
   )
 }
