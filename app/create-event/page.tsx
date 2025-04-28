@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
+import BackToMain from "@/components/BackButton"
 
 export default function CreateEventPage() {
   const { user } = useAuth()
@@ -77,7 +78,9 @@ export default function CreateEventPage() {
   }
 
   return (
-    <div className="min-h-screen bg-indigo-50 flex items-center justify-center p-6">
+    
+    <div className="min-h-screen bg-gradient-to-br from-purple-600 to-blue-600 p-4 sm:p-6 font-sans">
+      <BackToMain />
       <Card className="w-full max-w-2xl bg-white shadow-lg rounded-2xl p-6">
         <CardHeader className="text-center">
           <CardTitle className="text-3xl font-bold text-gray-800">
