@@ -90,10 +90,9 @@ export default function LoginPage() {
                 />
               </div>
 
-              {/* Error Message */}
-              {error && (
-                <p className="text-red-500 text-sm text-center font-medium">{error}</p>
-              )}
+              <div className="h-5 text-center text-sm text-red-500">
+              {error && 'Invalid credentials'}
+              </div>
 
               <Button
                 type="submit"
