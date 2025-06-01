@@ -20,6 +20,7 @@ import BackButton from "@/components/BackButton"
 export default function SignUpPage() {
   const { login } = useAuth();
   const [name, setName] = useState("")
+    const [error, setError] = useState("")
   const [email, setEmail] = useState("")
   const [password_hash, setPassword] = useState("")
   const [agreeTerms, setAgreeTerms] = useState(false)
@@ -30,6 +31,7 @@ export default function SignUpPage() {
     e.preventDefault();
     if (!agreeTerms) {
       alert("You must agree to the terms and conditions to sign up.");
+      setError("You must agree to the terms and conditions to sign up.")
       return;
     }
   
@@ -50,13 +52,16 @@ export default function SignUpPage() {
           router.push("/home");
         } else {
           console.error("No token received.");
+          setError("Error signing up...")
         }
         
       } else {
         console.error("Sign-up failed:", data.error);
+        setError("Sign-up failed")
       }
     } catch (error) {
       console.error("Error during sign-up:", error);
+      setError("Error during sign-up")
     }
   };
   
@@ -133,6 +138,11 @@ export default function SignUpPage() {
                   </label>
                 </div>
               </div>
+
+              <div className="h-5 text-center text-sm text-red-500">
+              {error && 'Invalid credentials'}
+              </div>
+
               <Button
                 type="submit"
                 className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white font-bold py-3 rounded-md transition duration-300 ease-in-out transform hover:scale-105"
