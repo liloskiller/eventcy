@@ -2,8 +2,11 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { useState } from "react"
+
 
 export async function POST(request: Request) {
+    const [agreeTerms, setAgreeTerms] = useState(false)
   try {
     const { name, email, password } = await request.json();
     const existingUser = await prisma.users.findUnique({ where: { email } });
@@ -30,6 +33,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "User created", user: newUser, token });
   } catch (error) {
     console.error("Signup error:", error);
+    if (!agreeTerms) {
+      return NextResponse.json({ error: "Error creating user" });
+    }else{
     return NextResponse.json({ error: "Error creating user" }, { status: 500 });
+  }
   }
 }
