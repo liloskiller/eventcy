@@ -14,15 +14,16 @@ import BackButton from "@/components/BackButton"
 export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password_hash, setPassword] = useState("")
+  const [error, setError] = useState("")
   const router = useRouter()
   const { login } = useAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
-    // Simple client-side validation
+    setError("")
+
     if (!email || !password_hash) {
-      alert("Please fill in both fields")
+      setError("Please fill in both fields")
       return
     }
 
@@ -39,11 +40,11 @@ export default function LoginPage() {
         login(data.token)
         router.push("/home")
       } else {
-        alert(data.error || "Login failed")
+        setError(data.error || "Login failed")
       }
-    } catch (error) {
-      console.error("Login error:", error)
-      alert("An error occurred during login")
+    } catch (err) {
+      console.error("Login error:", err)
+      setError("An error occurred during login")
     }
   }
 
@@ -88,6 +89,12 @@ export default function LoginPage() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 bg-purple-50 dark:bg-purple-900/20"
                 />
               </div>
+
+              {/* Error Message */}
+              {error && (
+                <p className="text-red-500 text-sm text-center font-medium">{error}</p>
+              )}
+
               <Button
                 type="submit"
                 className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white font-bold py-3 rounded-md transition duration-300 ease-in-out transform hover:scale-105"
@@ -95,6 +102,7 @@ export default function LoginPage() {
                 Login
               </Button>
             </form>
+
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">
                 Don&apos;t have an account?{" "}

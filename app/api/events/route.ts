@@ -5,7 +5,7 @@ import jwt from 'jsonwebtoken'
 
 const SECRET_KEY = process.env.JWT_SECRET as string
 
-// Helper function to verify staff access
+
 async function verifyStaffAccess(token: string) {
   const decoded = jwt.verify(token, SECRET_KEY) as { userId: string; email: string }
   const user = await prisma.users.findUnique({
@@ -15,7 +15,7 @@ async function verifyStaffAccess(token: string) {
   return user?.role === 'staff'
 }
 
-// GET all events (public access)
+
 export async function GET() {
   try {
     const events = await prisma.event.findMany({
