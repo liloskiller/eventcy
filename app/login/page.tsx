@@ -91,7 +91,7 @@ export default function LoginPage() {
               </div>
 
               <div className="h-5 text-center text-sm text-red-500">
-              {error && 'Invalid credentials'}
+              {error /*|| 'An error occured when signing up'*/}
               </div>
 
               <Button
