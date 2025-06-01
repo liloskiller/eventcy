@@ -144,7 +144,7 @@ export default function SignUpPage() {
               </div>
 
               <div className="h-5 text-center text-sm text-red-500">
-              {error && 'Error during sign-up'}
+              {error /*&& 'Error during sign-up'*/}
               </div>
 
               <Button
