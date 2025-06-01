@@ -66,7 +66,12 @@ export default function SignUpPage() {
       }
     } catch (error) {
       console.error("Error during sign-up:", error);
-      setError("Email is already in use!")
+      if (error instanceof Error) {
+      setError(error.message);
+      } else {
+      setError("Error during sign-up:");
+}
+
     }
   };
   
