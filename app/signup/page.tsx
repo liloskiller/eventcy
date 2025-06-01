@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
 import BackButton from "@/components/BackButton"
+import { any } from "zod";
 
 
 
@@ -30,10 +31,10 @@ export default function SignUpPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("")
-    if (!agreeTerms) {
+    /*if (!agreeTerms) {
       alert("You must agree to the terms and conditions to sign up.");
       return;
-    }
+    }*/
   
     try {
       const response = await fetch("/api/auth/signup", {
@@ -65,7 +66,7 @@ export default function SignUpPage() {
       }
     } catch (error) {
       console.error("Error during sign-up:", error);
-      setError("Error during sign-up")
+      setError("Email is already in use!")
     }
   };
   
