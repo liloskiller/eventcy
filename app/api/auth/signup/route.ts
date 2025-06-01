@@ -34,7 +34,7 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Signup error:", error);
     if (!agreeTerms) {
-      return NextResponse.json({ error: "Error creating user" });
+      return NextResponse.json({ error: "You must agree to the Terms and conditions." });
     }else{
     return NextResponse.json({ error: "Error creating user" }, { status: 500 });
   }
