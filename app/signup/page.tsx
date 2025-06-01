@@ -20,7 +20,7 @@ import BackButton from "@/components/BackButton"
 export default function SignUpPage() {
   const { login } = useAuth();
   const [name, setName] = useState("")
-    const [error, setError] = useState("")
+  const [error, setError] = useState("")
   const [email, setEmail] = useState("")
   const [password_hash, setPassword] = useState("")
   const [agreeTerms, setAgreeTerms] = useState(false)
@@ -29,9 +29,9 @@ export default function SignUpPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError("")
     if (!agreeTerms) {
       alert("You must agree to the terms and conditions to sign up.");
-      setError("You must agree to the terms and conditions to sign up.")
       return;
     }
   
@@ -45,6 +45,10 @@ export default function SignUpPage() {
       });
   
       const data = await response.json();
+      if (!agreeTerms) {
+      setError(data.error || "Login failed")
+      return;
+      }
 
       if (response.ok) {
         if (data.token) {
@@ -52,12 +56,12 @@ export default function SignUpPage() {
           router.push("/home");
         } else {
           console.error("No token received.");
-          setError("Error signing up...")
+          setError(data.error || "Error signing up...")
         }
         
       } else {
         console.error("Sign-up failed:", data.error);
-        setError("Sign-up failed")
+        setError(data.error || "Sign-up failed")
       }
     } catch (error) {
       console.error("Error during sign-up:", error);
@@ -140,7 +144,7 @@ export default function SignUpPage() {
               </div>
 
               <div className="h-5 text-center text-sm text-red-500">
-              {error && 'Invalid credentials'}
+              {error && 'Error during sign-up'}
               </div>
 
               <Button
